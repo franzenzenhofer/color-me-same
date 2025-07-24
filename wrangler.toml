@@ -1,0 +1,36 @@
+name = "color-me-same"
+main = "src/worker.js"
+compatibility_date = "2024-01-01"
+
+# Cloudflare Pages configuration for static assets
+[site]
+bucket = "./dist"
+
+# KV namespace for storing game state
+[[kv_namespaces]]
+binding = "GAME_STATE"
+id = "ebc6c6ab80324920bfa913fd2c48c2b5"
+preview_id = "e4c82a40f74745e9943d8823e78413fd"
+
+# Durable Objects for real-time game sessions
+[[durable_objects.bindings]]
+name = "GAME_SESSION"
+class_name = "GameSession"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["GameSession"]
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+
+# Routes
+[[routes]]
+pattern = "color-me-same.franzai.com/*"
+zone_name = "franzai.com"
+
+# Dev configuration
+[dev]
+port = 8787
+local_protocol = "http"

@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #4F46E5;
+    --color-secondary: #7C3AED;
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+  }
+
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 
+           active:scale-95 transition-all duration-150 font-semibold
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 
+           active:scale-95 transition-all duration-150 font-semibold
+           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  }
+
+  .game-tile {
+    @apply relative aspect-square rounded-lg active:scale-95 transition-all duration-150
+           shadow-md hover:shadow-lg cursor-pointer select-none;
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50
+           animate-fade-in;
+  }
+
+  .modal-content {
+    @apply bg-white rounded-xl p-6 max-w-md w-full shadow-2xl animate-slide-up;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .glass-effect {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent;
+  }
+}
