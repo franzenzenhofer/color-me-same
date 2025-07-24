@@ -51,33 +51,48 @@ const GameBoard: React.FC = () => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
-      // Reserve space for UI elements
-      const reservedHeight = 300; // Progress bar, dashboard, padding
-      const padding = 32; // Side padding
+      // Reserve space for UI elements dynamically based on viewport
+      // Dashboard ~60px, PowerUps ~80px, ColorCycleInfo ~60px, ProgressBar ~40px, padding
+      const baseUIHeight = 280;
+      const reservedHeight = viewportWidth < 768 
+        ? Math.min(baseUIHeight, viewportHeight * 0.45) // Mobile: up to 45% for UI
+        : Math.min(baseUIHeight + 50, viewportHeight * 0.35); // Desktop: up to 35% for UI
+      const padding = viewportWidth < 768 ? 12 : 24; // Less padding on mobile
       
       const availableWidth = viewportWidth - padding;
       const availableHeight = viewportHeight - reservedHeight;
       
-      // Calculate max tile size based on available space
-      const maxTileWidth = Math.floor((availableWidth - (grid.length - 1) * 4 - 16) / grid.length);
-      const maxTileHeight = Math.floor((availableHeight - (grid.length - 1) * 4 - 16) / grid.length);
+      // Gap between tiles
+      const tileGap = 4;
+      const boardPadding = 16;
       
-      // Use the smaller dimension to ensure board fits
+      // Calculate max tile size that fits in available space
+      const maxTileWidth = Math.floor(
+        (availableWidth - boardPadding - (grid.length - 1) * tileGap) / grid.length
+      );
+      const maxTileHeight = Math.floor(
+        (availableHeight - boardPadding - (grid.length - 1) * tileGap) / grid.length
+      );
+      
+      // Use the smaller dimension to ensure board fits both ways
       let calculatedSize = Math.min(maxTileWidth, maxTileHeight);
       
-      // Set min/max bounds - adjust for larger grids
-      const minSize = grid.length > 16 ? 25 : grid.length > 12 ? 30 : 40;
-      const maxSize = grid.length > 16 ? 40 : grid.length > 12 ? 50 : 80;
-      calculatedSize = Math.max(minSize, Math.min(maxSize, calculatedSize));
+      // Don't artificially limit tile size - let it use available space
+      // Only apply minimum size to ensure visibility
+      const minSize = grid.length >= 20 ? 20 : 
+                      grid.length >= 16 ? 25 :
+                      grid.length >= 12 ? 30 :
+                      grid.length >= 10 ? 35 :
+                      grid.length >= 6 ? 40 : 45;
       
-      // Special handling for large grids on mobile
-      if (viewportWidth < 768) {
-        if (grid.length > 10) {
-          calculatedSize = Math.min(calculatedSize, 35);
-        } else if (grid.length > 5) {
-          calculatedSize = Math.min(calculatedSize, 50);
-        }
+      // For very large grids on small screens, ensure they fit
+      if (viewportWidth < 768 && grid.length > 12) {
+        const mobileMax = Math.floor((viewportWidth - 20) / grid.length) - 1;
+        calculatedSize = Math.min(calculatedSize, mobileMax);
       }
+      
+      // Apply minimum size
+      calculatedSize = Math.max(minSize, calculatedSize);
       
       setTileSize(calculatedSize);
     };
@@ -106,7 +121,7 @@ const GameBoard: React.FC = () => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="relative flex flex-col items-center"
+      className="relative flex flex-col items-center justify-center flex-1 py-2"
     >
       <div
         className="grid gap-1 bg-black/20 backdrop-blur-sm p-2 rounded-xl"

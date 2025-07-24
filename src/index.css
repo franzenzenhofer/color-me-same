@@ -26,6 +26,16 @@
   textarea:disabled {
     @apply opacity-50 cursor-not-allowed;
   }
+  
+  /* Ensure game board is always visible */
+  .game-container {
+    @apply flex flex-col min-h-0;
+  }
+  
+  /* Prevent overflow on main content */
+  #root {
+    @apply h-screen overflow-hidden;
+  }
 }
 
 @layer components {
