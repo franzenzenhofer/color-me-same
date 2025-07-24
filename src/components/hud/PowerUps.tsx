@@ -22,10 +22,10 @@ const PowerUps: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="grid grid-cols-3 gap-2 mb-4"
+      className="grid grid-cols-3 gap-1 mb-2"
     >
       <PowerUpButton
-        icon={<Undo2 size={20} />}
+        icon={<Undo2 size={18} />}
         label="Undo"
         count={undosRemaining === -1 ? undefined : undosRemaining}
         showUnlimited={undosRemaining === -1}
@@ -41,7 +41,7 @@ const PowerUps: React.FC = () => {
       />
       
       <PowerUpButton
-        icon={<RotateCcw size={20} />}
+        icon={<RotateCcw size={18} />}
         label="Reset"
         showUnlimited={isEasyMode}
         disabled={disabled}
@@ -52,7 +52,7 @@ const PowerUps: React.FC = () => {
       />
       
       <PowerUpButton
-        icon={<Lightbulb size={20} />}
+        icon={<Lightbulb size={18} />}
         label="Hint"
         active={hintsEnabled}
         showUnlimited={isEasyMode}
@@ -93,7 +93,7 @@ const PowerUpButton: React.FC<PowerUpButtonProps> = ({
     disabled={disabled}
     onClick={onClick}
     className={`
-      relative p-3 rounded-lg flex flex-col items-center gap-1 transition-all
+      relative p-2 rounded-lg flex flex-col items-center gap-0.5 transition-all
       ${active ? 'bg-green-500 text-white' : 'bg-white/10 backdrop-blur-sm text-white'}
       ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/20'}
     `}

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Timer, Target, Trophy, Settings, Pause, Play } from 'lucide-react';
+import { Timer, Target, Trophy, Settings } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { useTimer } from '../../hooks/useTimer';
@@ -7,11 +7,11 @@ import { motion } from 'framer-motion';
 
 const Dashboard: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { started, time, moves, score, difficulty, won, paused, level } = state;
+  const { started, time, moves, score, difficulty, won, level } = state;
 
-  // Global timer
+  // Global timer - removed pause support
   const timeLimit = DIFFICULTIES[difficulty].timeLimit;
-  useTimer(started && !won && !paused && !!timeLimit, useCallback(() => {
+  useTimer(started && !won && !!timeLimit, useCallback(() => {
     dispatch({ type: 'TICK' });
   }, [dispatch]));
 
@@ -30,40 +30,28 @@ const Dashboard: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-effect rounded-xl p-2 mb-2"
+      className="glass-effect rounded-xl p-1.5 mb-1"
     >
-      <div className="grid grid-cols-5 gap-1 text-white">
+      <div className="grid grid-cols-4 gap-1 text-white">
         <Stat
-          icon={<Target size={20} />}
+          icon={<Target size={18} />}
           label={`L${level}`}
           value={moves}
           subValue={DIFFICULTIES[difficulty].maxMoves || '∞'}
         />
         <Stat
-          icon={<Timer size={20} />}
-          label="Time"
+          icon={<Timer size={18} />}
           value={timeLimit ? formatTime(remaining!) : formatTime(time)}
           danger={isTimeCritical}
         />
         <Stat
-          icon={<Trophy size={20} />}
-          label="Score"
+          icon={<Trophy size={18} />}
           value={score}
         />
         <Stat
-          icon={<Settings size={20} />}
-          label="Level"
+          icon={<Settings size={18} />}
           value={difficulty.toUpperCase()}
         />
-        <button
-          onClick={() => dispatch({ type: 'PAUSE', paused: !paused })}
-          className="flex flex-col items-center justify-center hover:bg-white/10 rounded-lg transition-colors p-1"
-        >
-          {paused ? <Play size={20} /> : <Pause size={20} />}
-          <span className="text-xs mt-1 opacity-60">
-            {paused ? 'Resume' : 'Pause'}
-          </span>
-        </button>
       </div>
     </motion.div>
   );
@@ -71,24 +59,24 @@ const Dashboard: React.FC = () => {
 
 interface StatProps {
   icon: React.ReactNode;
-  label: string;
+  label?: string;
   value: number | string;
   subValue?: number | string;
   danger?: boolean;
 }
 
 const Stat: React.FC<StatProps> = ({ icon, label, value, subValue, danger }) => (
-  <div className="flex flex-col items-center text-center">
+  <div className="flex flex-col items-center text-center py-0.5">
     <div className={`${danger ? 'text-red-400 animate-pulse' : ''}`}>
       {icon}
     </div>
-    <span className={`text-lg font-bold ${danger ? 'text-red-400' : ''}`}>
+    <span className={`text-base font-bold leading-tight ${danger ? 'text-red-400' : ''}`}>
       {value}
       {subValue && (
-        <span className="text-xs opacity-60 ml-1">/{subValue}</span>
+        <span className="text-xs opacity-60 ml-0.5">/{subValue}</span>
       )}
     </span>
-    <span className="text-xs opacity-60">{label}</span>
+    {label && <span className="text-xs opacity-60 leading-tight">{label}</span>}
   </div>
 );
 

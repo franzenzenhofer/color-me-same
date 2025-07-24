@@ -30,6 +30,7 @@ import TutorialModal from './components/modals/TutorialModal';
 import AchievementModal from './components/modals/AchievementModal';
 import StartScreen from './components/screens/StartScreen';
 import { VersionInfo } from './components/VersionInfo';
+import Header from './components/layout/Header';
 
 /**
  * Root Application Component
@@ -64,6 +65,7 @@ const App: React.FC = () => {
   return (
     <GameProvider>
       <PageShell>
+        <Header />
         <StartScreen />
         <Dashboard />
         <PowerUps />

@@ -10,7 +10,7 @@ const ProgressBar: React.FC = () => {
   const nextBelt = getNextBelt();
 
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 mb-2 mt-2">
+    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1.5 mb-1 mt-1">
       {/* Compact Belt Display */}
       <div className="flex items-center gap-2">
         <motion.div
