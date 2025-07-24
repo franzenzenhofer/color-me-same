@@ -16,10 +16,15 @@ const StartScreen: React.FC = () => {
   const handleStart = async () => {
     setLoading(true);
     try {
-      const puzzle = await generate(DIFFICULTIES[selectedDifficulty], 1); // Start at level 1
+      // Determine starting level based on difficulty
+      const startingLevel = selectedDifficulty === 'easy' ? 1 : 
+                           selectedDifficulty === 'medium' ? 11 : 
+                           21; // hard
+      
+      const puzzle = await generate(DIFFICULTIES[selectedDifficulty], startingLevel);
       dispatch({ 
         type: 'NEW_GAME', 
-        payload: { difficulty: selectedDifficulty, level: 1, ...puzzle } 
+        payload: { difficulty: selectedDifficulty, level: startingLevel, ...puzzle } 
       });
     } catch (error) {
       console.error('Failed to generate puzzle:', error);
