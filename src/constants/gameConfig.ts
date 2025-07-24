@@ -1,6 +1,12 @@
 export const COLOR_PALETTE = [
-  '#FF4444', '#44DD44', '#4444FF',
-  '#FFAA00', '#AA44FF', '#44DDDD',
+  '#EF4444', // Red - vibrant and accessible
+  '#10B981', // Green - good contrast
+  '#3B82F6', // Blue - clear distinction
+  '#F59E0B', // Amber - warm and visible
+  '#8B5CF6', // Purple - distinct hue
+  '#06B6D4', // Cyan - cool tone
+  '#F97316', // Orange - energetic
+  '#EC4899', // Pink - playful
 ] as const;
 
 export type DifficultyKey = 'easy' | 'medium' | 'hard';

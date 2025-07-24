@@ -11,8 +11,12 @@
     --color-error: #EF4444;
   }
 
+  * {
+    @apply transform-gpu;
+  }
+
   body {
-    @apply antialiased;
+    @apply antialiased overflow-hidden;
   }
 }
 

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { COLOR_PALETTE } from '../../constants/gameConfig';
-import { Lock, Zap } from 'lucide-react';
+import { Lock, Zap, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface TileProps {
   value: number;
@@ -10,6 +11,8 @@ interface TileProps {
   highlight: boolean;
   onClick: () => void;
   disabled?: boolean;
+  row?: number;
+  col?: number;
 }
 
 const Tile: React.FC<TileProps> = ({ 
@@ -19,41 +22,115 @@ const Tile: React.FC<TileProps> = ({
   lockCount, 
   highlight, 
   onClick,
-  disabled = false 
+  disabled = false,
+  row = 0,
+  col = 0
 }) => {
+  const [isClicking, setIsClicking] = useState(false);
+  
+  const handleClick = () => {
+    if (locked || disabled) return;
+    setIsClicking(true);
+    setTimeout(() => setIsClicking(false), 200);
+    onClick();
+  };
+
+  const backgroundColor = COLOR_PALETTE[value] || COLOR_PALETTE[0];
+  const colorName = ['Red', 'Green', 'Blue', 'Amber', 'Purple', 'Cyan', 'Orange', 'Pink'][value] || 'Unknown';
+
   return (
-    <button
+    <motion.button
       className={`
-        relative aspect-square rounded-lg transition-all duration-300
-        ${highlight ? 'ring-4 ring-green-400 ring-offset-2 ring-offset-transparent scale-110 z-10' : ''}
-        ${locked ? 'cursor-not-allowed opacity-80' : 'hover:scale-105 active:scale-95'}
-        ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
-        shadow-lg hover:shadow-xl
+        relative aspect-square rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-white/50
+        ${highlight ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-transparent z-20' : ''}
+        ${locked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'}
+        ${disabled ? 'cursor-not-allowed opacity-60' : ''}
+        shadow-lg hover:shadow-xl transform-gpu
+        ${isClicking ? 'scale-90' : ''}
       `}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={locked || disabled}
       style={{ 
-        backgroundColor: COLOR_PALETTE[value],
-        transform: highlight ? 'scale(1.1)' : undefined
+        backgroundColor,
+        boxShadow: highlight 
+          ? `0 0 20px ${backgroundColor}40, 0 4px 20px rgba(0,0,0,0.3)` 
+          : '0 4px 12px rgba(0,0,0,0.3)',
       }}
-      aria-label={`Tile at position with color ${value}`}
+      aria-label={`${colorName} tile at row ${row + 1}, column ${col + 1}${locked ? ', locked' : ''}${power ? ', power tile' : ''}`}
+      whileHover={!locked && !disabled ? { scale: 1.05 } : {}}
+      whileTap={!locked && !disabled ? { scale: 0.95 } : {}}
+      animate={{
+        scale: highlight ? 1.1 : 1,
+        rotateY: isClicking ? 180 : 0,
+      }}
+      transition={{
+        scale: { duration: 0.2 },
+        rotateY: { duration: 0.3, ease: "easeInOut" }
+      }}
     >
+      {/* Glossy effect */}
+      <div className="absolute inset-1 bg-gradient-to-br from-white/30 to-transparent rounded-md pointer-events-none" />
+      
+      {/* Highlight glow effect */}
+      {highlight && (
+        <motion.div
+          className="absolute inset-0 rounded-lg pointer-events-none"
+          style={{
+            background: `radial-gradient(circle, ${backgroundColor}60 0%, transparent 70%)`,
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.5, 0.8, 0.5],
+          }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      )}
+
       {locked && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg backdrop-blur-sm">
           <Lock size={20} className="text-white drop-shadow-lg" />
           {lockCount && lockCount > 0 && (
-            <span className="absolute top-1 right-1 text-xs font-bold text-white bg-red-500 rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 text-xs font-bold text-white bg-red-500 rounded-full w-5 h-5 flex items-center justify-center shadow-lg animate-bounce">
               {lockCount}
             </span>
           )}
         </div>
       )}
+      
       {power && (
-        <div className="absolute top-1 right-1 bg-yellow-400 rounded-full p-1 animate-pulse-soft">
-          <Zap size={12} className="text-yellow-900" fill="currentColor" />
-        </div>
+        <motion.div 
+          className="absolute top-1 right-1 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full p-1 shadow-lg"
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <Sparkles size={12} className="text-yellow-900" fill="currentColor" />
+        </motion.div>
       )}
-    </button>
+
+      {/* Click ripple effect */}
+      {isClicking && (
+        <motion.div
+          className="absolute inset-0 rounded-lg pointer-events-none"
+          style={{
+            background: `radial-gradient(circle, white 0%, transparent 70%)`,
+          }}
+          initial={{ scale: 0, opacity: 0.8 }}
+          animate={{ scale: 2, opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+      )}
+    </motion.button>
   );
 };
 

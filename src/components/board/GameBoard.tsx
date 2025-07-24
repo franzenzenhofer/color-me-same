@@ -70,6 +70,8 @@ const GameBoard: React.FC = () => {
                   highlight={isHint}
                   onClick={() => handleTileClick(r, c)}
                   disabled={paused || won}
+                  row={r}
+                  col={c}
                 />
               </motion.div>
             );
