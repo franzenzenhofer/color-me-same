@@ -4,7 +4,7 @@ import TutorialModal from '../TutorialModal';
 import { GameProvider } from '../../../context/GameContext';
 
 // Helper to render with context
-const renderWithContext = (ui: React.ReactElement, contextValue?: any) => {
+const renderWithContext = (ui: React.ReactElement, _contextValue?: unknown) => {
   return render(
     <GameProvider>
       {ui}

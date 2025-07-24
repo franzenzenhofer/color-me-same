@@ -7,6 +7,7 @@ import { isWinningState, effectMatrix, applyEffect } from '../utils/grid';
 interface GameState {
   // Game state
   difficulty: DifficultyKey;
+  level: number; // Current level within difficulty
   grid: number[][];
   solved: number[][];
   power: Set<string>;
@@ -33,22 +34,26 @@ interface GameState {
   // UI state
   showTutorial: boolean;
   showVictory: boolean;
-  showInfo: boolean;
+  showHints: boolean; // Show hints (level 1 auto or manual toggle)
+  hintsEnabled: boolean; // Manual hint toggle from PowerUps
 }
 
 type Action =
-  | { type: 'NEW_GAME'; payload: { difficulty: DifficultyKey } & GenerationResult }
+  | { type: 'NEW_GAME'; payload: { difficulty: DifficultyKey; level?: number } & GenerationResult }
   | { type: 'CLICK'; row: number; col: number }
   | { type: 'LOCK_DECR' }
   | { type: 'TICK' }
   | { type: 'WIN' }
   | { type: 'PAUSE'; paused: boolean }
-  | { type: 'SHOW_MODAL'; modal: 'tutorial' | 'victory' | 'info' | null }
+  | { type: 'SHOW_MODAL'; modal: 'tutorial' | 'victory' | null }
   | { type: 'ADD_XP'; amount: number }
-  | { type: 'UNLOCK_ACHIEVEMENT'; id: string };
+  | { type: 'UNLOCK_ACHIEVEMENT'; id: string }
+  | { type: 'NEXT_LEVEL' }
+  | { type: 'TOGGLE_HINTS'; enabled?: boolean };
 
 const initial: GameState = {
   difficulty: 'easy',
+  level: 1,
   grid: [],
   solved: [],
   power: new Set(),
@@ -67,7 +72,8 @@ const initial: GameState = {
   achievements: [],
   showTutorial: false,
   showVictory: false,
-  showInfo: false,
+  showHints: false,
+  hintsEnabled: false,
 };
 
 interface GameContextType {
@@ -83,10 +89,13 @@ const GameContext = createContext<GameContextType>({
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'NEW_GAME': {
-      const { difficulty, grid, solved, power, locked, solution, reverse } = action.payload;
+      const { difficulty, level = 1, grid, solved, power, locked, solution, reverse } = action.payload;
+      // Show hints automatically on level 1 of any difficulty
+      const showHints = level === 1;
       return {
         ...state,
         difficulty,
+        level,
         grid,
         solved,
         power,
@@ -99,8 +108,10 @@ function reducer(state: GameState, action: Action): GameState {
         solution,
         reverse,
         score: 0,
-        showTutorial: DIFFICULTIES[difficulty].tutorial,
+        showTutorial: false, // Don't auto-open modal
         showVictory: false,
+        showHints,
+        hintsEnabled: showHints, // Enable hints on level 1
       };
     }
 
@@ -131,7 +142,7 @@ function reducer(state: GameState, action: Action): GameState {
         moves: newMoves,
         won,
         score,
-        showVictory: won,
+        showVictory: false, // Don't show victory modal immediately
       };
 
       // Log state for debugging
@@ -176,7 +187,6 @@ function reducer(state: GameState, action: Action): GameState {
         ...state,
         showTutorial: action.modal === 'tutorial',
         showVictory: action.modal === 'victory',
-        showInfo: action.modal === 'info',
       };
     }
 
@@ -198,6 +208,27 @@ function reducer(state: GameState, action: Action): GameState {
       return {
         ...state,
         achievements: [...state.achievements, action.id],
+      };
+    }
+
+    case 'NEXT_LEVEL': {
+      // Progress to next level within current difficulty
+      return {
+        ...state,
+        level: state.level + 1,
+        showVictory: false,
+        // Clear hints after level 1
+        showHints: false,
+        hintsEnabled: false,
+      };
+    }
+
+    case 'TOGGLE_HINTS': {
+      const enabled = action.enabled !== undefined ? action.enabled : !state.hintsEnabled;
+      return {
+        ...state,
+        hintsEnabled: enabled,
+        showHints: enabled || state.level === 1, // Always show on level 1
       };
     }
 

@@ -99,7 +99,7 @@ export function useProgression() {
     checkAchievements(moves, time, perfect);
   };
 
-  const checkAchievements = (moves: number, time: number, perfect: boolean) => {
+  const checkAchievements = (_moves: number, time: number, perfect: boolean) => {
     const newAchievements: string[] = [];
 
     // Check each achievement

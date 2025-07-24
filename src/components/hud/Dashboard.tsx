@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 
 const Dashboard: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { started, time, moves, score, difficulty, won, paused } = state;
+  const { started, time, moves, score, difficulty, won, paused, level } = state;
 
   // Global timer
   const timeLimit = DIFFICULTIES[difficulty].timeLimit;
@@ -30,12 +30,12 @@ const Dashboard: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-effect rounded-xl p-4 mb-4"
+      className="glass-effect rounded-xl p-2 mb-2"
     >
-      <div className="grid grid-cols-5 gap-2 text-white">
+      <div className="grid grid-cols-5 gap-1 text-white">
         <Stat
           icon={<Target size={20} />}
-          label="Moves"
+          label={`L${level}`}
           value={moves}
           subValue={DIFFICULTIES[difficulty].maxMoves || '∞'}
         />
@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
         />
         <button
           onClick={() => dispatch({ type: 'PAUSE', paused: !paused })}
-          className="flex flex-col items-center justify-center hover:bg-white/10 rounded-lg transition-colors p-2"
+          className="flex flex-col items-center justify-center hover:bg-white/10 rounded-lg transition-colors p-1"
         >
           {paused ? <Play size={20} /> : <Pause size={20} />}
           <span className="text-xs mt-1 opacity-60">

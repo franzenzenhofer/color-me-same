@@ -16,7 +16,15 @@
   }
 
   body {
-    @apply antialiased overflow-hidden;
+    @apply antialiased;
+  }
+  
+  /* Global disabled states */
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    @apply opacity-50 cursor-not-allowed;
   }
 }
 
@@ -24,18 +32,26 @@
   .btn-primary {
     @apply px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 
            active:scale-95 transition-all duration-150 font-semibold
-           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-indigo-600 
+           disabled:active:scale-100;
   }
 
   .btn-secondary {
     @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 
            active:scale-95 transition-all duration-150 font-semibold
-           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-200 
+           disabled:active:scale-100;
   }
 
   .game-tile {
     @apply relative aspect-square rounded-lg active:scale-95 transition-all duration-150
            shadow-md hover:shadow-lg cursor-pointer select-none;
+  }
+  
+  .game-tile:disabled {
+    @apply opacity-60 cursor-not-allowed hover:shadow-md active:scale-100;
   }
 
   .modal-backdrop {
@@ -44,7 +60,8 @@
   }
 
   .modal-content {
-    @apply bg-white rounded-xl p-6 max-w-md w-full shadow-2xl animate-slide-up;
+    @apply bg-white rounded-xl p-6 max-w-md w-full shadow-2xl animate-slide-up
+           max-h-[90vh] overflow-y-auto overflow-x-hidden;
   }
 }
 

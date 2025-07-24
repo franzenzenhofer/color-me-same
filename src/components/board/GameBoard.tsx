@@ -1,16 +1,72 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import Tile from './Tile';
-import { useSolution } from '../../hooks/useSolver';
+import { useDynamicHint } from '../../hooks/useDynamicHint';
 import { motion } from 'framer-motion';
 
 const GameBoard: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { grid, power, locked, solution, started, won, paused } = state;
+  const { grid, power, locked, started, won, paused, difficulty, showHints } = state;
+  const [tileSize, setTileSize] = useState(60);
   
-  // Interactive solution assistant
-  const { step, current, next } = useSolution(solution);
-  const showHint = !!solution.length && !won && started && step < solution.length && !paused;
+  // Dynamic hint calculation
+  const { nextMove: hintMove, isCalculating } = useDynamicHint(
+    grid,
+    power,
+    locked,
+    difficulty,
+    showHints && !won && !paused
+  );
+  
+  // Show victory modal after delay when puzzle is solved
+  useEffect(() => {
+    if (won && !state.showVictory) {
+      const timer = setTimeout(() => {
+        dispatch({ type: 'SHOW_MODAL', modal: 'victory' });
+      }, 2000); // 2 second delay to admire the solved grid
+      
+      return () => clearTimeout(timer);
+    }
+  }, [won, state.showVictory, dispatch]);
+
+  // Calculate responsive tile size
+  useEffect(() => {
+    const calculateTileSize = () => {
+      if (!grid.length) return;
+      
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Reserve space for UI elements
+      const reservedHeight = 300; // Progress bar, dashboard, padding
+      const padding = 32; // Side padding
+      
+      const availableWidth = viewportWidth - padding;
+      const availableHeight = viewportHeight - reservedHeight;
+      
+      // Calculate max tile size based on available space
+      const maxTileWidth = Math.floor((availableWidth - (grid.length - 1) * 4 - 16) / grid.length);
+      const maxTileHeight = Math.floor((availableHeight - (grid.length - 1) * 4 - 16) / grid.length);
+      
+      // Use the smaller dimension to ensure board fits
+      let calculatedSize = Math.min(maxTileWidth, maxTileHeight);
+      
+      // Set min/max bounds
+      calculatedSize = Math.max(40, Math.min(80, calculatedSize));
+      
+      // Special handling for large grids on mobile
+      if (viewportWidth < 768 && grid.length > 5) {
+        calculatedSize = Math.min(calculatedSize, 50);
+      }
+      
+      setTileSize(calculatedSize);
+    };
+    
+    calculateTileSize();
+    window.addEventListener('resize', calculateTileSize);
+    
+    return () => window.removeEventListener('resize', calculateTileSize);
+  }, [grid.length]);
 
   if (!started || !grid.length) return null;
 
@@ -19,34 +75,31 @@ const GameBoard: React.FC = () => {
     
     dispatch({ type: 'CLICK', row, col });
     
-    // Advance hint if this was the hinted tile
-    if (showHint && current?.row === row && current?.col === col) {
-      next();
-    }
-    
     // Decrement locked tiles
     dispatch({ type: 'LOCK_DECR' });
   };
+
+  const boardSize = grid.length * tileSize + (grid.length - 1) * 4 + 16;
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="relative"
+      className="relative flex flex-col items-center"
     >
       <div
-        className="grid gap-2 bg-black/20 backdrop-blur-sm p-4 rounded-xl"
+        className="grid gap-1 bg-black/20 backdrop-blur-sm p-2 rounded-xl"
         style={{ 
-          gridTemplateColumns: `repeat(${grid.length}, minmax(0, 1fr))`,
-          maxWidth: `${grid.length * 80 + (grid.length - 1) * 8 + 32}px`,
-          margin: '0 auto'
+          gridTemplateColumns: `repeat(${grid.length}, ${tileSize}px)`,
+          width: `${boardSize}px`,
+          maxWidth: '100%'
         }}
       >
         {grid.map((row, r) =>
           row.map((cell, c) => {
             const key = `${r}-${c}`;
-            const isHint = showHint && current?.row === r && current?.col === c;
+            const isHint = showHints && hintMove?.row === r && hintMove?.col === c;
             const isPower = power.has(key);
             const isLocked = locked.has(key);
             const lockCount = locked.get(key);
@@ -55,12 +108,22 @@ const GameBoard: React.FC = () => {
               <motion.div
                 key={key}
                 initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
+                animate={{ 
+                  scale: won && !state.showVictory ? [1, 1.1, 1] : 1, 
+                  rotate: 0 
+                }}
                 transition={{ 
                   delay: (r * grid.length + c) * 0.02,
                   type: "spring",
-                  stiffness: 200
+                  stiffness: 200,
+                  scale: won && !state.showVictory ? {
+                    delay: 0.5 + (r * grid.length + c) * 0.05,
+                    duration: 0.5,
+                    repeat: 2,
+                    repeatType: "reverse"
+                  } : {}
                 }}
+                style={{ width: tileSize, height: tileSize }}
               >
                 <Tile
                   value={cell}
@@ -79,15 +142,41 @@ const GameBoard: React.FC = () => {
         )}
       </div>
       
-      {showHint && (
+      {showHints && hintMove && !won && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mt-4 text-white/80"
+          className="text-center mt-2 text-white/80"
         >
           <p className="text-sm">
-            💡 Hint: Click the highlighted tile ({step + 1}/{solution.length})
+            💡 Hint: Click the highlighted tile
+            {isCalculating && " (calculating...)"}
           </p>
+        </motion.div>
+      )}
+      
+      {/* Victory celebration overlay */}
+      {won && !state.showVictory && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 100 }}
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        >
+          <motion.div
+            animate={{ 
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{ 
+              duration: 2,
+              rotate: { ease: "linear", repeat: 1 },
+              scale: { repeat: 2, repeatType: "reverse" }
+            }}
+            className="text-6xl"
+          >
+            🎉
+          </motion.div>
         </motion.div>
       )}
     </motion.div>

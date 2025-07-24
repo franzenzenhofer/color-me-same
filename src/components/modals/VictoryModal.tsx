@@ -1,7 +1,9 @@
 import React from 'react';
 import { useGame } from '../../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Clock, Target, Star } from 'lucide-react';
+import { Trophy, Clock, Target, Star, ArrowRight } from 'lucide-react';
+import { useGenerator } from '../../hooks/useGenerator';
+import { DIFFICULTIES } from '../../constants/gameConfig';
 
 interface VictoryModalProps {
   onShowAchievements?: (achievements: string[]) => void;
@@ -9,7 +11,8 @@ interface VictoryModalProps {
 
 const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShowAchievements }) => {
   const { state, dispatch } = useGame();
-  const { showVictory, won, score, moves, solution, time } = state;
+  const { showVictory, won, score, moves, solution, time, difficulty, level } = state;
+  const { generate } = useGenerator();
 
   if (!showVictory) return null;
 
@@ -24,6 +27,19 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
 
   const handleNewGame = () => {
     window.location.reload(); // Simple reload for now
+  };
+
+  const handleContinue = async () => {
+    // Progress to next level
+    dispatch({ type: 'NEXT_LEVEL' });
+    
+    // Generate new game with same difficulty but higher level
+    const nextLevel = level + 1;
+    const result = await generate(DIFFICULTIES[difficulty], nextLevel);
+    dispatch({ 
+      type: 'NEW_GAME', 
+      payload: { ...result, difficulty, level: nextLevel } 
+    });
   };
 
   return (
@@ -47,16 +63,16 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                 initial={{ scale: 0 }}
                 animate={{ scale: 1, rotate: 360 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-6xl mb-4"
+                className="text-4xl mb-2"
               >
                 🎉
               </motion.div>
               
-              <h2 className="text-3xl font-bold text-green-600 mb-2">
+              <h2 className="text-2xl font-bold text-green-600 mb-2">
                 Puzzle Solved!
               </h2>
               
-              <div className="flex justify-center gap-1 mb-4">
+              <div className="flex justify-center gap-1 mb-2">
                 {[...Array(3)].map((_, i) => (
                   <motion.div
                     key={i}
@@ -65,7 +81,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                     transition={{ delay: 0.3 + i * 0.1 }}
                   >
                     <Star
-                      size={32}
+                      size={24}
                       className={i < stars ? 'text-yellow-400' : 'text-gray-300'}
                       fill={i < stars ? 'currentColor' : 'none'}
                     />
@@ -73,7 +89,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                 ))}
               </div>
               
-              <div className="space-y-2 mb-6">
+              <div className="space-y-1 mb-4">
                 <div className="flex items-center justify-center gap-2">
                   <Target size={20} className="text-gray-600" />
                   <span>Moves: <strong>{moves}</strong> / {solution.length}</span>
@@ -88,32 +104,41 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                 </div>
               </div>
               
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-600 mb-2">
                 Efficiency: {efficiency}%
               </p>
             </>
           ) : (
             <>
-              <div className="text-6xl mb-4">⏰</div>
-              <h2 className="text-3xl font-bold text-red-600 mb-4">
+              <div className="text-4xl mb-2">⏰</div>
+              <h2 className="text-2xl font-bold text-red-600 mb-2">
                 Time&apos;s Up!
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-4">
                 Don&apos;t worry, you can try again!
               </p>
             </>
           )}
           
           <div className="flex gap-2">
+            {won && (
+              <button
+                onClick={handleContinue}
+                className="btn-primary flex-1 flex items-center justify-center gap-2"
+              >
+                Continue
+                <ArrowRight size={16} />
+              </button>
+            )}
             <button
               onClick={handleNewGame}
-              className="btn-primary flex-1"
+              className={`btn-secondary flex-1 ${!won ? 'btn-primary' : ''}`}
             >
               New Game
             </button>
             <button
               onClick={() => dispatch({ type: 'SHOW_MODAL', modal: null })}
-              className="btn-secondary flex-1"
+              className="btn-secondary"
             >
               Close
             </button>

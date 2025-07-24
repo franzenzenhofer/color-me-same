@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { clone, effectMatrix, applyEffect, isWinningState } from '../utils/grid';
+import { effectMatrix, applyEffect, isWinningState } from '../utils/grid';
 
 export interface SolveResult {
   solution: { row: number; col: number }[];

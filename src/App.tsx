@@ -5,9 +5,9 @@ import GameBoard from './components/board/GameBoard';
 import Dashboard from './components/hud/Dashboard';
 import PowerUps from './components/hud/PowerUps';
 import ProgressBar from './components/hud/ProgressBar';
+import ColorCycleInfo from './components/hud/ColorCycleInfo';
 import VictoryModal from './components/modals/VictoryModal';
 import TutorialModal from './components/modals/TutorialModal';
-import InfoPanel from './components/modals/InfoPanel';
 import AchievementModal from './components/modals/AchievementModal';
 import StartScreen from './components/screens/StartScreen';
 import { VersionInfo } from './components/VersionInfo';
@@ -30,13 +30,13 @@ const App: React.FC = () => {
     <GameProvider>
       <PageShell>
         <StartScreen />
-        <ProgressBar />
         <Dashboard />
         <PowerUps />
         <GameBoard />
+        <ColorCycleInfo />
+        <ProgressBar />
         <TutorialModal />
         <VictoryModal onShowAchievements={showAchievements} />
-        <InfoPanel />
         <AchievementModal
           isOpen={achievementModal.isOpen}
           achievements={achievementModal.achievements}

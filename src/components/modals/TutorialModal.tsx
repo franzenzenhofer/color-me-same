@@ -1,7 +1,7 @@
-import React from &apos;react&apos;;
-import { BookOpen, X } from &apos;lucide-react&apos;;
-import { useGame } from &apos;../../context/GameContext&apos;;
-import { motion, AnimatePresence } from &apos;framer-motion&apos;;
+import React from 'react';
+import { BookOpen, X } from 'lucide-react';
+import { useGame } from '../../context/GameContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const TutorialModal: React.FC = () => {
   const { state, dispatch } = useGame();
@@ -16,7 +16,7 @@ const TutorialModal: React.FC = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="modal-backdrop"
-        onClick={() => dispatch({ type: &apos;SHOW_MODAL&apos;, modal: null })}
+        onClick={() => dispatch({ type: 'SHOW_MODAL', modal: null })}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -26,7 +26,7 @@ const TutorialModal: React.FC = () => {
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            onClick={() => dispatch({ type: &apos;SHOW_MODAL&apos;, modal: null })}
+            onClick={() => dispatch({ type: 'SHOW_MODAL', modal: null })}
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
           >
             <X size={20} />
@@ -71,7 +71,7 @@ const TutorialModal: React.FC = () => {
           </div>
           
           <button
-            onClick={() => dispatch({ type: &apos;SHOW_MODAL&apos;, modal: null })}
+            onClick={() => dispatch({ type: 'SHOW_MODAL', modal: null })}
             className="btn-primary w-full mt-6"
           >
             Let&apos;s Play!

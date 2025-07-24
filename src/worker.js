@@ -5,12 +5,44 @@
 
 import { Router } from 'itty-router';
 import { generatePuzzle, solvePuzzle, applyMove, isWinningState } from './game-logic.js';
-// import { html } from './templates.js';
+import { html } from './templates.js';
 
 const router = Router();
 
-// Static assets are handled automatically by Cloudflare Workers
-// SPA routing is handled by not_found_handling = "single-page-application"
+// Security headers helper
+const addSecurityHeaders = (headers = {}) => {
+  return {
+    ...headers,
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+  };
+};
+
+// Serve the main game HTML - for now, redirect to the React app
+router.get('/', async (request, env) => {
+  // In production, serve the React app from the Sites assets
+  if (env.__STATIC_CONTENT) {
+    const asset = await env.__STATIC_CONTENT.get('index.html');
+    if (asset) {
+      return new Response(asset.body, {
+        headers: addSecurityHeaders({
+          'Content-Type': 'text/html;charset=UTF-8',
+          'Cache-Control': 'public, max-age=0, must-revalidate',
+        }),
+      });
+    }
+  }
+  
+  // Fallback to the old HTML
+  return new Response(html, {
+    headers: addSecurityHeaders({
+      'Content-Type': 'text/html;charset=UTF-8',
+      'Cache-Control': 'public, max-age=3600',
+    }),
+  });
+});
 
 // API: Generate new puzzle
 router.post('/api/generate', async (request) => {
@@ -19,7 +51,7 @@ router.post('/api/generate', async (request) => {
   const puzzle = await generatePuzzle(difficulty);
   
   return new Response(JSON.stringify(puzzle), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: addSecurityHeaders({ 'Content-Type': 'application/json' }),
   });
 });
 
@@ -31,7 +63,7 @@ router.post('/api/solve', async (request) => {
   const solution = await solvePuzzle(grid, power, locked, colors);
   
   return new Response(JSON.stringify(solution), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: addSecurityHeaders({ 'Content-Type': 'application/json' }),
   });
 });
 
@@ -43,7 +75,7 @@ router.post('/api/move', async (request) => {
   const won = isWinningState(result.grid);
   
   return new Response(JSON.stringify({ ...result, won }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: addSecurityHeaders({ 'Content-Type': 'application/json' }),
   });
 });
 
@@ -54,7 +86,7 @@ router.get('/api/leaderboard/:difficulty', async (request, env) => {
   const leaderboard = await env.GAME_STATE.get(`leaderboard:${difficulty}`, { type: 'json' });
   
   return new Response(JSON.stringify(leaderboard || []), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: addSecurityHeaders({ 'Content-Type': 'application/json' }),
   });
 });
 
@@ -80,16 +112,53 @@ router.post('/api/score', async (request, env) => {
   await env.GAME_STATE.put(key, JSON.stringify(leaderboard));
   
   return new Response(JSON.stringify({ success: true }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: addSecurityHeaders({ 'Content-Type': 'application/json' }),
   });
 });
 
-// All static assets and SPA routing are handled automatically by Cloudflare Workers
-// with the [assets] configuration in wrangler.toml
+// Serve static assets from Sites
+router.get('/assets/*', async (request, env) => {
+  const url = new URL(request.url);
+  const path = url.pathname.substring(1); // Remove leading /
+  
+  if (env.__STATIC_CONTENT) {
+    const asset = await env.__STATIC_CONTENT.get(path);
+    if (asset) {
+      return new Response(asset.body, {
+        headers: addSecurityHeaders({
+          'Content-Type': getMimeType(path),
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        }),
+      });
+    }
+  }
+  
+  return new Response('Not found', { status: 404 });
+});
+
+// Catch all other routes - try to serve from Sites
+router.all('*', async (request, env) => {
+  const url = new URL(request.url);
+  const path = url.pathname === '/' ? 'index.html' : url.pathname.substring(1);
+  
+  if (env.__STATIC_CONTENT) {
+    const asset = await env.__STATIC_CONTENT.get(path);
+    if (asset) {
+      return new Response(asset.body, {
+        headers: addSecurityHeaders({
+          'Content-Type': getMimeType(path),
+          'Cache-Control': path.endsWith('.html') ? 'public, max-age=0' : 'public, max-age=31536000',
+        }),
+      });
+    }
+  }
+  
+  return new Response('Not Found', { status: 404 });
+});
 
 // Helper function for MIME types
-
-  //   const ext = filename.split('.').pop().toLowerCase();
+function getMimeType(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
   const types = {
     'js': 'application/javascript',
     'css': 'text/css',
@@ -120,7 +189,7 @@ export class GameSession {
         return new Response('Expected Upgrade: websocket', { status: 426 });
       }
 
-      const [client, server] = Object.values(new WebSocketPair());
+      const [client, server] = Object.values(new WebSocketPair()); // eslint-disable-line no-undef
       
       await this.handleSession(server);
       

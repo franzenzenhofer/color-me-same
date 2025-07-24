@@ -41,8 +41,7 @@ const Tile: React.FC<TileProps> = ({
   return (
     <motion.button
       className={`
-        relative aspect-square rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-white/50
-        ${highlight ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-transparent z-20' : ''}
+        relative w-full h-full rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-white/50
         ${locked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'}
         ${disabled ? 'cursor-not-allowed opacity-60' : ''}
         shadow-lg hover:shadow-xl transform-gpu
@@ -52,15 +51,13 @@ const Tile: React.FC<TileProps> = ({
       disabled={locked || disabled}
       style={{ 
         backgroundColor,
-        boxShadow: highlight 
-          ? `0 0 20px ${backgroundColor}40, 0 4px 20px rgba(0,0,0,0.3)` 
-          : '0 4px 12px rgba(0,0,0,0.3)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
       }}
       aria-label={`${colorName} tile at row ${row + 1}, column ${col + 1}${locked ? ', locked' : ''}${power ? ', power tile' : ''}`}
       whileHover={!locked && !disabled ? { scale: 1.05 } : {}}
       whileTap={!locked && !disabled ? { scale: 0.95 } : {}}
       animate={{
-        scale: highlight ? 1.1 : 1,
+        scale: highlight ? 1.05 : 1,
         rotateY: isClicking ? 180 : 0,
       }}
       transition={{
@@ -71,28 +68,45 @@ const Tile: React.FC<TileProps> = ({
       {/* Glossy effect */}
       <div className="absolute inset-1 bg-gradient-to-br from-white/30 to-transparent rounded-md pointer-events-none" />
       
-      {/* Highlight glow effect */}
+      {/* Highlight effect with yellow dashed border */}
       {highlight && (
-        <motion.div
-          className="absolute inset-0 rounded-lg pointer-events-none"
-          style={{
-            background: `radial-gradient(circle, ${backgroundColor}60 0%, transparent 70%)`,
-          }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.5, 0.8, 0.5],
-          }}
-          transition={{
-            duration: 1,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
+        <>
+          <motion.div
+            className="absolute -inset-1 rounded-lg pointer-events-none border-2 border-dashed border-yellow-400"
+            style={{
+              borderWidth: '3px',
+              borderRadius: '12px',
+            }}
+            animate={{
+              opacity: [0.8, 1, 0.8],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div
+            className="absolute inset-0 rounded-lg pointer-events-none"
+            style={{
+              background: `radial-gradient(circle, ${backgroundColor}40 0%, transparent 70%)`,
+            }}
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        </>
       )}
 
       {locked && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg backdrop-blur-sm">
-          <Lock size={20} className="text-white drop-shadow-lg" />
+          <Lock size={16} className="text-white drop-shadow-lg" />
           {lockCount && lockCount > 0 && (
             <span className="absolute -top-1 -right-1 text-xs font-bold text-white bg-red-500 rounded-full w-5 h-5 flex items-center justify-center shadow-lg animate-bounce">
               {lockCount}
@@ -114,7 +128,7 @@ const Tile: React.FC<TileProps> = ({
             ease: "easeInOut"
           }}
         >
-          <Sparkles size={12} className="text-yellow-900" fill="currentColor" />
+          <Sparkles size={10} className="text-yellow-900" fill="currentColor" />
         </motion.div>
       )}
 

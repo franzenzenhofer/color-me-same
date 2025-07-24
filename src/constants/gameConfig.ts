@@ -32,7 +32,7 @@ export const DIFFICULTIES: Record<DifficultyKey, Difficulty> = {
     maxLockedTiles: 0,
     powerTileChance: 0, 
     timeLimit: 0, 
-    tutorial: true,
+    tutorial: false,
     description: 'Perfect for learning! No limits.' 
   },
   medium: { 

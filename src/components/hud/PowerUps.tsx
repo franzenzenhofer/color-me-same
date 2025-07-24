@@ -4,14 +4,16 @@ import { useGame } from '../../context/GameContext';
 import { motion } from 'framer-motion';
 
 const PowerUps: React.FC = () => {
-  const { state } = useGame();
-  const { started, won, paused } = state;
+  const { state, dispatch } = useGame();
+  const { started, won, paused, difficulty, hintsEnabled } = state;
   
   // Power-up states (these would be managed in context in full implementation)
   const [wildcardUsed, setWildcardUsed] = useState(false);
   const [freezeUsed, setFreezeUsed] = useState(false);
-  const [resetCount, setResetCount] = useState(1);
-  const [hintEnabled, setHintEnabled] = useState(false);
+  
+  // Easy mode gets unlimited resets, others get limited
+  const isEasyMode = difficulty === 'easy';
+  const [resetCount, setResetCount] = useState(isEasyMode ? -1 : 3); // -1 means unlimited
 
   if (!started) return null;
 
@@ -49,25 +51,29 @@ const PowerUps: React.FC = () => {
       <PowerUpButton
         icon={<RotateCcw size={20} />}
         label="Reset"
-        count={resetCount}
-        disabled={!resetCount || disabled}
+        count={resetCount === -1 ? undefined : resetCount}
+        showUnlimited={resetCount === -1}
+        disabled={resetCount === 0 || disabled}
         onClick={() => {
-          setResetCount(0);
-          // TODO: Implement reset logic
+          if (resetCount !== -1) {
+            setResetCount(resetCount - 1);
+          }
+          // Reload page to reset game (simple solution)
+          window.location.reload();
         }}
-        tooltip="Reset to start"
+        tooltip={isEasyMode ? "Reset puzzle (unlimited)" : `Reset puzzle (${resetCount} left)`}
       />
       
       <PowerUpButton
         icon={<Lightbulb size={20} />}
         label="Hint"
-        active={hintEnabled}
+        active={hintsEnabled}
+        showUnlimited={isEasyMode}
         disabled={disabled}
         onClick={() => {
-          setHintEnabled(!hintEnabled);
-          // Hint is handled by GameBoard component
+          dispatch({ type: 'TOGGLE_HINTS' });
         }}
-        tooltip="Show next move"
+        tooltip={isEasyMode ? "Show hints (unlimited)" : "Show next move"}
       />
     </motion.div>
   );
@@ -79,6 +85,7 @@ interface PowerUpButtonProps {
   disabled?: boolean;
   active?: boolean;
   count?: number;
+  showUnlimited?: boolean;
   onClick: () => void;
   tooltip: string;
 }
@@ -89,6 +96,7 @@ const PowerUpButton: React.FC<PowerUpButtonProps> = ({
   disabled,
   active,
   count,
+  showUnlimited,
   onClick,
   tooltip
 }) => (
@@ -106,7 +114,12 @@ const PowerUpButton: React.FC<PowerUpButtonProps> = ({
   >
     {icon}
     <span className="text-xs font-medium">{label}</span>
-    {count !== undefined && count > 0 && (
+    {showUnlimited && (
+      <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+        ∞
+      </span>
+    )}
+    {count !== undefined && count > 0 && !showUnlimited && (
       <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
         {count}
       </span>
