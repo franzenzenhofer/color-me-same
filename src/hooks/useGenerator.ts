@@ -17,8 +17,8 @@ export interface GenerationResult {
 /**
  * Calculate progressive grid size based on difficulty and level
  * Easy: always 3x3
- * Medium: 6x6 → 8x8 → 10x10 → 12x12 → 14x14 → 16x16
- * Hard: 10x10 → 12x12 → 14x14 → 16x16
+ * Medium: 6x6 → 8x8 → 10x10 → 12x12 → 14x14 → 16x16 → 18x18 → 20x20
+ * Hard: 10x10 → 12x12 → 14x14 → 16x16 → 18x18 → 20x20
  */
 function getProgressiveSize(baseSize: number, difficulty: string, level: number): number {
   if (difficulty === 'easy') {
@@ -28,13 +28,13 @@ function getProgressiveSize(baseSize: number, difficulty: string, level: number)
   if (difficulty === 'medium') {
     // Medium starts at 6x6, increases by 2 every 5 levels
     const progression = Math.floor((level - 1) / 5);
-    return Math.min(16, 6 + progression * 2);
+    return Math.min(20, 6 + progression * 2);
   }
   
   if (difficulty === 'hard') {
     // Hard starts at 10x10, increases by 2 every 3 levels
     const progression = Math.floor((level - 1) / 3);
-    return Math.min(16, 10 + progression * 2);
+    return Math.min(20, 10 + progression * 2);
   }
   
   return baseSize;

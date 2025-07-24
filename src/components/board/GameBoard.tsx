@@ -65,12 +65,18 @@ const GameBoard: React.FC = () => {
       // Use the smaller dimension to ensure board fits
       let calculatedSize = Math.min(maxTileWidth, maxTileHeight);
       
-      // Set min/max bounds
-      calculatedSize = Math.max(40, Math.min(80, calculatedSize));
+      // Set min/max bounds - adjust for larger grids
+      const minSize = grid.length > 16 ? 25 : grid.length > 12 ? 30 : 40;
+      const maxSize = grid.length > 16 ? 40 : grid.length > 12 ? 50 : 80;
+      calculatedSize = Math.max(minSize, Math.min(maxSize, calculatedSize));
       
       // Special handling for large grids on mobile
-      if (viewportWidth < 768 && grid.length > 5) {
-        calculatedSize = Math.min(calculatedSize, 50);
+      if (viewportWidth < 768) {
+        if (grid.length > 10) {
+          calculatedSize = Math.min(calculatedSize, 35);
+        } else if (grid.length > 5) {
+          calculatedSize = Math.min(calculatedSize, 50);
+        }
       }
       
       setTileSize(calculatedSize);

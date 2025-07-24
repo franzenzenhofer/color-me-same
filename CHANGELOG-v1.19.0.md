@@ -13,12 +13,16 @@ This release introduces significant gameplay improvements including progressive 
   - Progresses to 10x10 at level 11
   - Progresses to 12x12 at level 16
   - Progresses to 14x14 at level 21
-  - Maxes out at 16x16 at level 26
+  - Progresses to 16x16 at level 26
+  - Progresses to 18x18 at level 31
+  - Maxes out at 20x20 at level 36
 - **Hard Mode**:
   - Starts at 10x10 (changed from 5x5)
   - Progresses to 12x12 at level 4
   - Progresses to 14x14 at level 7
-  - Maxes out at 16x16 at level 10
+  - Progresses to 16x16 at level 10
+  - Progresses to 18x18 at level 13
+  - Maxes out at 20x20 at level 16
 
 ### 2. Undo Functionality
 - **Easy Mode**: Unlimited undos
