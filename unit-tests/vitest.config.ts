@@ -12,17 +12,18 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       all: true,
-      include: ['../src/**/*.{ts,tsx}'],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
-        '../src/**/*.d.ts',
-        '../src/**/*.test.{ts,tsx}',
-        '../src/**/*.spec.{ts,tsx}',
-        '../src/version.json',
-        '../src/main.tsx',
-        '../src/vite-env.d.ts'
+        'src/**/*.d.ts',
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.spec.{ts,tsx}',
+        'src/version.json',
+        'src/main.tsx',
+        'src/vite-env.d.ts'
       ],
       reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
+      root: '..',
       thresholds: {
         lines: 100,
         functions: 100,
