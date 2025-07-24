@@ -64,23 +64,25 @@ const App: React.FC = () => {
 
   return (
     <GameProvider>
-      <PageShell>
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
         <Header />
-        <StartScreen />
-        <Dashboard />
-        <PowerUps />
-        <GameBoard />
-        <ColorCycleInfo />
-        <ProgressBar />
-        <TutorialModal />
-        <VictoryModal onShowAchievements={showAchievements} />
-        <AchievementModal
-          isOpen={achievementModal.isOpen}
-          achievements={achievementModal.achievements}
-          onClose={closeAchievements}
-        />
-        <VersionInfo />
-      </PageShell>
+        <PageShell>
+          <StartScreen />
+          <Dashboard />
+          <PowerUps />
+          <GameBoard />
+          <ColorCycleInfo />
+          <ProgressBar />
+          <TutorialModal />
+          <VictoryModal onShowAchievements={showAchievements} />
+          <AchievementModal
+            isOpen={achievementModal.isOpen}
+            achievements={achievementModal.achievements}
+            onClose={closeAchievements}
+          />
+          <VersionInfo />
+        </PageShell>
+      </div>
     </GameProvider>
   );
 };

@@ -6,9 +6,9 @@ interface PageShellProps {
 
 const PageShell: React.FC<PageShellProps> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-hidden">
-      <div className="w-full min-h-screen flex flex-col">
-        <div className="flex-1 p-2 sm:p-4 pt-10 sm:pt-12">
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="w-full flex-1 flex flex-col">
+        <div className="flex-1 p-2 sm:p-4">
           <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col min-h-0 overflow-y-auto">
             {children}
           </div>
