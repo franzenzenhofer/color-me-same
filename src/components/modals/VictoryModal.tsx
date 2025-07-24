@@ -7,7 +7,7 @@ interface VictoryModalProps {
   onShowAchievements?: (achievements: string[]) => void;
 }
 
-const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements }) => {
+const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShowAchievements }) => {
   const { state, dispatch } = useGame();
   const { showVictory, won, score, moves, solution, time } = state;
 
@@ -96,10 +96,10 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements }) => {
             <>
               <div className="text-6xl mb-4">⏰</div>
               <h2 className="text-3xl font-bold text-red-600 mb-4">
-                Time's Up!
+                Time&apos;s Up!
               </h2>
               <p className="text-gray-600 mb-6">
-                Don't worry, you can try again!
+                Don&apos;t worry, you can try again!
               </p>
             </>
           )}

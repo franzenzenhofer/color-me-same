@@ -31,23 +31,23 @@ const StartScreen: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="text-center"
+      className="text-center max-w-2xl mx-auto px-4"
     >
       <motion.h1
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200 }}
-        className="text-5xl font-bold text-white mb-2"
+        className="text-4xl md:text-5xl font-bold text-white mb-2"
       >
         Color Me Same
       </motion.h1>
       
-      <p className="text-xl text-white/80 mb-8">
+      <p className="text-lg md:text-xl text-white/80 mb-6">
         Transform the grid into a single color!
       </p>
 
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
-        <h2 className="text-2xl font-semibold text-white mb-4">
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
+        <h2 className="text-xl font-semibold text-white mb-3">
           Select Difficulty
         </h2>
         
@@ -59,7 +59,7 @@ const StartScreen: React.FC = () => {
               whileTap={{ scale: 0.98 }}
               onClick={() => setSelectedDifficulty(key)}
               className={`
-                p-4 rounded-lg text-left transition-all
+                p-3 rounded-lg text-left transition-all
                 ${selectedDifficulty === key 
                   ? 'bg-white/20 ring-2 ring-white/50' 
                   : 'bg-white/10 hover:bg-white/15'}
@@ -87,8 +87,8 @@ const StartScreen: React.FC = () => {
                 </div>
               </div>
               
-              <div className="mt-2 text-xs text-white/60">
-                {config.size}×{config.size} grid • {config.colors} colors
+              <div className="mt-1 text-xs text-white/60">
+                {config.size}×{config.size} • {config.colors} colors
                 {config.maxMoves > 0 && ` • ${config.maxMoves} moves`}
                 {config.timeLimit > 0 && ` • ${config.timeLimit / 60}min`}
               </div>

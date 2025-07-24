@@ -1,5 +1,5 @@
 import React, { useReducer, createContext, Dispatch, useContext, ReactNode } from 'react';
-import { COLOR_PALETTE, DIFFICULTIES, DifficultyKey } from '../constants/gameConfig';
+import { DIFFICULTIES, DifficultyKey } from '../constants/gameConfig';
 import { GenerationResult } from '../hooks/useGenerator';
 import { computeScore, getDifficultyBonus } from '../utils/score';
 import { isWinningState, effectMatrix, applyEffect } from '../utils/grid';
@@ -114,9 +114,10 @@ function reducer(state: GameState, action: Action): GameState {
       const nextGrid = applyEffect(state.grid, effect, state.locked, DIFFICULTIES[state.difficulty].colors);
 
       const won = isWinningState(nextGrid);
+      const newMoves = state.moves + 1;
       const score = won
         ? computeScore(
-            state.moves + 1,
+            newMoves,
             state.solution.length,
             state.time,
             DIFFICULTIES[state.difficulty].timeLimit,
@@ -124,14 +125,21 @@ function reducer(state: GameState, action: Action): GameState {
           )
         : state.score;
 
-      return {
+      const newState = {
         ...state,
         grid: nextGrid,
-        moves: state.moves + 1,
+        moves: newMoves,
         won,
         score,
         showVictory: won,
       };
+
+      // Log state for debugging
+      if (won) {
+        console.log('🎉 PUZZLE SOLVED!', { moves: newMoves, score, grid: nextGrid });
+      }
+
+      return newState;
     }
 
     case 'LOCK_DECR': {

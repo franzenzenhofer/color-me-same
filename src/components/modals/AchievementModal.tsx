@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, X, Star, Zap } from 'lucide-react';
+import { Trophy, X, Zap } from 'lucide-react';
 import { ACHIEVEMENTS } from '../../constants/gameConfig';
 
 interface AchievementModalProps {

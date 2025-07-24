@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { COLOR_PALETTE } from '../../constants/gameConfig';
-import { Lock, Zap, Sparkles } from 'lucide-react';
+import { Lock, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface TileProps {

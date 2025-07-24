@@ -154,12 +154,12 @@ export function useProgression() {
   };
 
   const getNextBelt = () => {
-    const currentBeltData = BELT_COLORS[progress.currentBelt];
+    // const currentBeltData = BELT_COLORS[progress.currentBelt];
     const belts = Object.entries(BELT_COLORS);
     const currentIndex = belts.findIndex(([belt]) => belt === progress.currentBelt);
     
     if (currentIndex < belts.length - 1) {
-      const [nextBelt, nextData] = belts[currentIndex + 1];
+      const [, nextData] = belts[currentIndex + 1];
       return {
         name: nextData.name,
         color: nextData.color,
