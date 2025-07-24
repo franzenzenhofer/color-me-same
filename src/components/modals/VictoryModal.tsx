@@ -3,7 +3,11 @@ import { useGame } from '../../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Clock, Target, Star } from 'lucide-react';
 
-const VictoryModal: React.FC = () => {
+interface VictoryModalProps {
+  onShowAchievements?: (achievements: string[]) => void;
+}
+
+const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements }) => {
   const { state, dispatch } = useGame();
   const { showVictory, won, score, moves, solution, time } = state;
 
