@@ -1,6 +1,6 @@
 {
   "name": "color-me-same",
-  "version": "1.22.1",
+  "version": "1.22.2",
   "description": "A challenging puzzle game where you make all tiles the same color - Cloudflare Worker edition",
   "type": "module",
   "scripts": {
@@ -12,7 +12,6 @@
     "build:worker": "echo 'Worker uses static assets from dist/'",
     "predeploy": "npm run version:bump:minor && npm run build",
     "deploy": "node scripts/deploy-complete.js",
-    "deploy:full": "./scripts/deploy-with-tests.sh",
     "deploy:preview": "wrangler deploy --env preview",
     "tail": "wrangler tail",
     "test": "vitest",
