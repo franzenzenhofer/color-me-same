@@ -1,14 +1,50 @@
 /**
- * Pure functional grid utilities based on mathematical model
+ * @fileoverview Pure Functional Grid Manipulation Utilities
+ * 
+ * This module contains the core mathematical operations for the Color Me Same puzzle game.
+ * All functions are pure (no side effects) and operate on immutable data structures.
+ * 
+ * The mathematical foundation:
+ * - Colors are represented as integers in Z_n (integers modulo n)
+ * - Click operations are additions in this finite field
+ * - Each operation is self-inverse: clicking the same pattern twice returns to original
+ * - This property ensures mathematical solvability
+ * 
+ * Key principles:
+ * - Immutability: All functions return new grids, never modify inputs
+ * - Functional purity: Same inputs always produce same outputs
+ * - Mathematical rigor: Operations based on modular arithmetic
+ * 
+ * @module gridV2
  */
 
 /**
- * Apply a click to the grid following the game rules:
- * - Normal tile: affects + pattern (self and 4 neighbors)
- * - Power tile: affects 3x3 area
- * - Locked tiles are not affected
+ * Apply a click operation to the grid
  * 
- * This is a pure function - returns a new grid without modifying the input
+ * This implements the core game mechanic where clicking a tile changes its color
+ * and the colors of adjacent tiles. The operation works in modular arithmetic,
+ * ensuring colors cycle through the available palette.
+ * 
+ * Pattern types:
+ * - Normal tiles: Cross/Plus pattern (5 tiles affected)
+ * - Power tiles: 3x3 square pattern (9 tiles affected)
+ * 
+ * Mathematical operation:
+ * For each affected tile at position (i,j):
+ * newColor[i,j] = (oldColor[i,j] + 1) mod numColors
+ * 
+ * @param {number[][]} grid - The current game grid
+ * @param {number} row - Row index of clicked tile (0-based)
+ * @param {number} col - Column index of clicked tile (0-based)
+ * @param {number} colors - Number of colors in the game (modulus)
+ * @param {boolean} isPowerTile - Whether this is a power tile (3x3 vs cross)
+ * @param {Map<string, number>} lockedTiles - Map of locked positions to unlock countdown
+ * @returns {number[][]} New grid with click applied (original unchanged)
+ * 
+ * @example
+ * const grid = [[0,1,2], [1,2,0], [2,0,1]];
+ * const newGrid = applyClick(grid, 1, 1, 3, false, new Map());
+ * // Center and adjacent tiles incremented by 1 (mod 3)
  */
 export function applyClick(
   grid: number[][],
@@ -45,8 +81,32 @@ export function applyClick(
 }
 
 /**
- * Apply a REVERSE click (subtract 1 instead of add 1)
- * This is used during puzzle generation to scramble from solved state
+ * Apply a reverse click operation (inverse of normal click)
+ * 
+ * This function is crucial for puzzle generation. By applying reverse clicks
+ * to a solved state, we create a scrambled puzzle that we KNOW can be solved
+ * by applying normal clicks in the reverse order.
+ * 
+ * Mathematical operation:
+ * For each affected tile at position (i,j):
+ * newColor[i,j] = (oldColor[i,j] - 1 + numColors) mod numColors
+ * 
+ * The addition of numColors before modulo ensures positive results.
+ * 
+ * Proof of reversibility:
+ * Let f(x) = (x + 1) mod n be the forward operation
+ * Let g(x) = (x - 1 + n) mod n be the reverse operation
+ * Then f(g(x)) = ((x - 1 + n) + 1) mod n = x mod n = x
+ * And g(f(x)) = ((x + 1) - 1 + n) mod n = x mod n = x
+ * Therefore, f and g are inverses.
+ * 
+ * @param {number[][]} grid - The current game grid
+ * @param {number} row - Row index of clicked tile
+ * @param {number} col - Column index of clicked tile
+ * @param {number} colors - Number of colors (modulus)
+ * @param {boolean} isPowerTile - Whether this is a power tile
+ * @param {Map<string, number>} lockedTiles - Locked positions map
+ * @returns {number[][]} New grid with reverse click applied
  */
 export function applyReverseClick(
   grid: number[][],

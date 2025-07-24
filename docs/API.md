@@ -1,12 +1,25 @@
 # Color Me Same API Documentation
 
-## Base URL
+> **Note**: The current implementation of Color Me Same is a client-side React application. The API endpoints documented below represent the planned backend API for future features like multiplayer, leaderboards, and cloud saves.
 
-- **Production**: `https://color-me-same.franzai.com`
-- **Preview**: `https://color-me-same.preview.workers.dev`
+## Current Architecture
+
+The game currently runs entirely in the browser with:
+- Client-side puzzle generation
+- Local state management
+- No backend API required
+
+## Planned API Endpoints (Future)
+
+When implemented, the API will support:
+
+### Base URLs
+
+- **Production**: `https://api.color-me-same.franzai.com`
+- **Staging**: `https://api-staging.color-me-same.franzai.com`
 - **Local**: `http://localhost:8787`
 
-## Endpoints
+### Endpoints
 
 ### Generate Puzzle
 

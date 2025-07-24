@@ -1,10 +1,42 @@
-# ColorMeSame - GitHub & Cloudflare Deployment Best Practices
+# Color Me Same - Deployment Best Practices
 
 ## 🚀 Overview
 
-This guide outlines best practices for deploying ColorMeSame to Cloudflare Workers using GitHub Actions CI/CD.
+This guide outlines the current deployment process for Color Me Same and best practices for future enhancements. The game is currently deployed as a static site to Cloudflare Workers.
 
-## 📋 Table of Contents
+## 🎯 Current Deployment Process
+
+### Quick Deploy
+The project uses a simple deployment script that handles everything:
+
+```bash
+# Deploy to production
+npm run deploy
+
+# This runs the deploy-cloudflare.sh script which:
+# 1. Bumps version number
+# 2. Builds the project with Vite
+# 3. Deploys to Cloudflare Workers
+# 4. Tags the release in git
+```
+
+### Manual Steps
+1. Ensure you're logged in to Cloudflare:
+   ```bash
+   wrangler login
+   ```
+
+2. Run the deployment:
+   ```bash
+   npm run deploy
+   ```
+
+3. Verify deployment:
+   - Check https://color-me-same.franzai.com
+   - Test game functionality
+   - Monitor console for errors
+
+## 📋 Table of Contents (Advanced Setup)
 
 1. [Prerequisites](#prerequisites)
 2. [GitHub Repository Setup](#github-repository-setup)

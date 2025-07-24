@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Main Game Board Component
+ * 
+ * The GameBoard is the central interactive element of Color Me Same. It renders
+ * a responsive grid of colored tiles that players click to solve puzzles.
+ * 
+ * Key features:
+ * - Responsive sizing: Adapts to any screen size (3x3 to 20x20 grids)
+ * - Dynamic hints: Shows optimal next move when enabled
+ * - Solvability verification: Real-time checking (for debugging)
+ * - Smooth animations: Framer Motion for delightful interactions
+ * - Victory detection: Auto-shows victory modal on completion
+ * 
+ * The component uses custom hooks for complex logic separation and
+ * maintains performance even with large grids through React optimizations.
+ * 
+ * @module GameBoard
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import Tile from './Tile';
@@ -6,6 +25,19 @@ import { useSolvabilityCheck } from '../../hooks/useSolvabilityCheck';
 import { motion } from 'framer-motion';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 
+/**
+ * GameBoard Component - Renders the interactive puzzle grid
+ * 
+ * This component is responsible for:
+ * 1. Rendering the grid of tiles based on game state
+ * 2. Calculating responsive tile sizes for any screen
+ * 3. Showing hints when enabled
+ * 4. Detecting victory condition
+ * 5. Managing tile interactions
+ * 
+ * @component
+ * @returns {JSX.Element} The game board grid
+ */
 const GameBoard: React.FC = () => {
   const { state, dispatch } = useGame();
   const { grid, power, locked, started, won, paused, difficulty, showHints, optimalPath, playerMoves } = state;
@@ -43,7 +75,19 @@ const GameBoard: React.FC = () => {
     }
   }, [won, state.showVictory, dispatch]);
 
-  // Calculate responsive tile size
+  /**
+   * Calculate responsive tile size based on viewport and grid dimensions
+   * 
+   * This effect runs whenever the grid changes or window resizes. It ensures
+   * that any grid size (3x3 to 20x20) fits perfectly on any screen size while
+   * maintaining square tiles and leaving room for UI elements.
+   * 
+   * Algorithm:
+   * 1. Calculate available space after UI elements
+   * 2. Determine max tile size for width and height
+   * 3. Use the smaller to ensure grid fits
+   * 4. Apply min/max constraints for usability
+   */
   useEffect(() => {
     const calculateTileSize = () => {
       if (!grid.length) return;
@@ -51,12 +95,21 @@ const GameBoard: React.FC = () => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
-      // Reserve space for UI elements dynamically based on viewport
-      // Dashboard ~60px, PowerUps ~80px, ColorCycleInfo ~60px, ProgressBar ~40px, padding
+      // === UI Space Reservation ===
+      // We need to reserve space for various UI elements:
+      // - Dashboard: ~60px (stats, timer, moves)
+      // - PowerUps: ~80px (undo, reset, hint buttons)
+      // - ColorCycleInfo: ~60px (shows color progression)
+      // - ProgressBar: ~40px (level progress)
+      // - Additional padding and margins
       const baseUIHeight = 280;
+      
+      // Dynamic reservation based on device type
       const reservedHeight = viewportWidth < 768 
-        ? Math.min(baseUIHeight, viewportHeight * 0.45) // Mobile: up to 45% for UI
-        : Math.min(baseUIHeight + 50, viewportHeight * 0.35); // Desktop: up to 35% for UI
+        ? Math.min(baseUIHeight, viewportHeight * 0.45) // Mobile: max 45% for UI
+        : Math.min(baseUIHeight + 50, viewportHeight * 0.35); // Desktop: max 35% for UI
+      
+      // Responsive padding
       const padding = viewportWidth < 768 ? 12 : 24; // Less padding on mobile
       
       const availableWidth = viewportWidth - padding;

@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Game State Management with React Context
+ * 
+ * This module implements centralized state management for Color Me Same using
+ * React Context API with useReducer. It follows the Flux architecture pattern
+ * with immutable state updates and type-safe actions.
+ * 
+ * State management principles:
+ * - Single source of truth: All game state in one place
+ * - Immutable updates: State is never mutated directly
+ * - Type safety: TypeScript ensures action payload correctness
+ * - Performance: Context updates only trigger necessary re-renders
+ * 
+ * The state tracks everything from the current puzzle grid to player progression,
+ * achievements, and UI state. Actions are dispatched to update state predictably.
+ * 
+ * @module GameContext
+ */
+
 import React, { useReducer, createContext, Dispatch, useContext, ReactNode } from 'react';
 import { DIFFICULTIES, DifficultyKey } from '../constants/gameConfig';
 import { GenerationResult } from '../hooks/useGenerator';
@@ -6,47 +25,89 @@ import { isWinningState } from '../utils/grid';
 import { applyClick } from '../utils/gridV2';
 import { log } from '../utils/logger';
 
+/**
+ * Complete game state interface
+ * 
+ * The GameState contains all data needed to represent a game session,
+ * from the puzzle itself to player progress and UI state.
+ * 
+ * @interface GameState
+ */
 interface GameState {
-  // Game state
+  // === Puzzle Configuration ===
+  /** Current difficulty mode based on level */
   difficulty: DifficultyKey;
-  level: number; // Current level within difficulty
+  /** Current level number (1-based, determines all difficulty parameters) */
+  level: number;
+  /** Current puzzle grid state (2D array of color indices) */
   grid: number[][];
-  initialGrid: number[][]; // Store initial scrambled state for reset
+  /** Original scrambled state for reset functionality */
+  initialGrid: number[][];
+  /** Target solved state (all tiles same color, usually 0) */
   solved: number[][];
+  /** Set of power tile positions ("row-col" format) */
   power: Set<string>;
+  /** Map of locked tiles to unlock countdown */
   locked: Map<string, number>;
-  initialLocked: Map<string, number>; // Store initial locked state for reset
+  /** Original locked state for reset */
+  initialLocked: Map<string, number>;
   
-  // Game progress
+  // === Game Progress ===
+  /** Number of moves made by player */
   moves: number;
+  /** Elapsed time in seconds */
   time: number;
+  /** Whether game has started */
   started: boolean;
+  /** Whether puzzle is solved */
   won: boolean;
+  /** Whether game is paused */
   paused: boolean;
   
-  // Solution data
+  // === Solution Tracking ===
+  /** Optimal solution path (for backwards compatibility) */
   solution: { row: number; col: number }[];
+  /** Moves used to generate puzzle */
   reverse: { row: number; col: number }[];
-  optimalPath: { row: number; col: number }[]; // NEW: Exact reverse of generation
-  playerMoves: { row: number; col: number }[]; // NEW: Track player's actual moves
+  /** Exact optimal path to solve (reverse of generation) */
+  optimalPath: { row: number; col: number }[];
+  /** Player's actual move history */
+  playerMoves: { row: number; col: number }[];
   
-  // Player data
+  // === Player Progression ===
+  /** Current score for this puzzle */
   score: number;
+  /** Total experience points */
   xp: number;
+  /** Current win streak */
   streak: number;
+  /** Current belt color (white → black) */
   belt: string;
+  /** Unlocked achievement IDs */
   achievements: string[];
   
-  // UI state
+  // === UI State ===
+  /** Whether to show tutorial modal */
   showTutorial: boolean;
+  /** Whether to show victory modal */
   showVictory: boolean;
-  showHints: boolean; // Show hints (level 1 auto or manual toggle)
-  hintsEnabled: boolean; // Manual hint toggle from PowerUps
+  /** Whether hints are currently displayed */
+  showHints: boolean;
+  /** Whether hints are manually enabled */
+  hintsEnabled: boolean;
   
-  // Undo functionality
-  undoHistory: { grid: number[][]; locked: Map<string, number>; moves: number; playerMoves: { row: number; col: number }[] }[];
-  undoCount: number; // Number of undos used
-  maxUndos: number; // Max undos allowed (unlimited = -1)
+  // === Undo System ===
+  /** History of previous states for undo */
+  undoHistory: { 
+    grid: number[][]; 
+    locked: Map<string, number>; 
+    moves: number; 
+    playerMoves: { row: number; col: number }[] 
+  }[];
+  /** Number of undos used in current puzzle */
+  undoCount: number;
+  /** Maximum undos allowed (-1 = unlimited) */
+  maxUndos: number;
 }
 
 type Action =
@@ -106,30 +167,28 @@ const GameContext = createContext<GameContextType>({
   dispatch: () => {},
 });
 
-/**
- * Get max undos based on difficulty
- * Easy: unlimited (-1)
- * Medium: 5
- * Hard: 1
- */
-function getMaxUndos(difficulty: DifficultyKey): number {
-  switch (difficulty) {
-    case 'easy':
-      return -1; // Unlimited
-    case 'medium':
-      return 5;
-    case 'hard':
-      return 1;
-    default:
-      return -1;
-  }
-}
 
+/**
+ * Main state reducer implementing the Flux pattern
+ * 
+ * This reducer handles all state transitions in the game. Each action
+ * produces a new immutable state based on the current state and action payload.
+ * The reducer is pure - same state + action always produces same new state.
+ * 
+ * Design principles:
+ * - Immutability: Always return new state objects
+ * - Predictability: Each action has clear, documented behavior
+ * - Atomicity: Actions complete fully or not at all
+ * - Traceability: All state changes go through this function
+ * 
+ * @param {GameState} state - Current game state
+ * @param {Action} action - Action to perform
+ * @returns {GameState} New game state
+ */
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'NEW_GAME': {
       const { 
-        difficulty, 
         level = 1, 
         grid, 
         solved, 
@@ -140,11 +199,19 @@ function reducer(state: GameState, action: Action): GameState {
         optimalPath = solution, // Use solution as optimal path if not provided
         playerMoves = []
       } = action.payload;
-      // Show hints automatically on level 1 of any difficulty
-      const showHints = level === 1;
+      
+      // Determine actual difficulty based on level
+      const levelDifficulty = level <= 10 ? 'easy' : level <= 20 ? 'medium' : 'hard';
+      
+      // Show hints automatically on first level of each difficulty tier
+      const showHints = level === 1 || level === 11 || level === 21;
+      
+      // Get max undos based on level
+      const maxUndos = level <= 10 ? -1 : level <= 20 ? 5 : 1;
+      
       return {
         ...state,
-        difficulty,
+        difficulty: levelDifficulty as DifficultyKey,
         level,
         grid,
         initialGrid: grid.map(row => [...row]), // Store initial state
@@ -165,10 +232,10 @@ function reducer(state: GameState, action: Action): GameState {
         showTutorial: false, // Don't auto-open modal
         showVictory: false,
         showHints,
-        hintsEnabled: showHints, // Enable hints on level 1
+        hintsEnabled: showHints, // Enable hints on first level of each tier
         undoHistory: [], // Reset undo history
         undoCount: 0,
-        maxUndos: getMaxUndos(difficulty),
+        maxUndos,
       };
     }
 
@@ -284,13 +351,23 @@ function reducer(state: GameState, action: Action): GameState {
 
     case 'ADD_XP': {
       const newXP = state.xp + action.amount;
-      // Update belt based on XP thresholds
       let newBelt = state.belt;
-      if (newXP >= 8000) newBelt = 'purple';
-      else if (newXP >= 5000) newBelt = 'blue';
-      else if (newXP >= 3000) newBelt = 'green';
-      else if (newXP >= 1500) newBelt = 'orange';
-      else if (newXP >= 500) newBelt = 'yellow';
+      
+      // Enhanced belt progression based on level milestones
+      // Belt progression aligns with difficulty transitions
+      if (state.level >= 50 && newXP >= 15000 && state.belt !== 'black') {
+        newBelt = 'black'; // Master level
+      } else if (state.level >= 30 && newXP >= 8000 && state.belt !== 'purple') {
+        newBelt = 'purple';
+      } else if (state.level >= 21 && newXP >= 5000 && state.belt !== 'blue') {
+        newBelt = 'blue';
+      } else if (state.level >= 11 && newXP >= 3000 && state.belt !== 'green') {
+        newBelt = 'green';
+      } else if (state.level >= 6 && newXP >= 1500 && state.belt !== 'orange') {
+        newBelt = 'orange';
+      } else if (state.level >= 3 && newXP >= 500 && state.belt !== 'yellow') {
+        newBelt = 'yellow';
+      }
       
       return { ...state, xp: newXP, belt: newBelt };
     }

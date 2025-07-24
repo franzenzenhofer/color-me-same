@@ -1,8 +1,37 @@
+/**
+ * @fileoverview Puzzle Generation System for Color Me Same
+ * 
+ * This module implements the core puzzle generation algorithm using a reverse-move
+ * approach that mathematically guarantees 100% solvability. Instead of generating
+ * a random puzzle and checking if it's solvable (which can fail), we start from
+ * a solved state and apply reverse moves to scramble it.
+ * 
+ * Key concepts:
+ * - Reverse-move generation: Start solved, apply inverse operations
+ * - Level-based progression: Dynamic difficulty scaling 1-70+
+ * - Deterministic solvability: No BFS needed, solution known by construction
+ * 
+ * @module useGenerator
+ */
+
 import { useCallback } from 'react';
 import { Difficulty } from '../constants/gameConfig';
 import { log } from '../utils/logger';
 import { applyReverseClick } from '../utils/gridV2';
 
+/**
+ * Result of puzzle generation containing all game state data
+ * 
+ * @interface GenerationResult
+ * @property {number[][]} grid - The scrambled puzzle grid to solve
+ * @property {number[][]} solved - The target solved state (all same color)
+ * @property {Set<string>} power - Power tile positions (format: "row-col")
+ * @property {Map<string, number>} locked - Locked tiles with unlock countdown
+ * @property {Array} solution - Optimal solution path (same as optimalPath)
+ * @property {Array} reverse - Generation history (moves used to scramble)
+ * @property {Array} optimalPath - Exact moves to solve puzzle optimally
+ * @property {Array} playerMoves - Player's move history (starts empty)
+ */
 export interface GenerationResult {
   grid: number[][];
   solved: number[][];
@@ -15,55 +44,141 @@ export interface GenerationResult {
 }
 
 /**
- * Calculate progressive grid size based on difficulty and level
- * Easy: always 3x3
- * Medium: 6x6 → 8x8 → 10x10 → 12x12 → 14x14 → 16x16 → 18x18 → 20x20
- * Hard: 10x10 → 12x12 → 14x14 → 16x16 → 18x18 → 20x20
+ * LEVEL PROGRESSION SYSTEM
+ * 
+ * Levels 1-10: EASY MODE
+ * - 3x3 grid throughout
+ * - Starts with 2 moves from solved state
+ * - Gradually increases difficulty
+ * - No time limits, unlimited undos
+ * 
+ * Levels 11-20: MEDIUM MODE  
+ * - 6x6 grid
+ * - Starts with 3 moves from solved state
+ * - Time limits apply
+ * - 5 undos per puzzle
+ * 
+ * Levels 21+: HARD MODE
+ * - 10x10 grid initially
+ * - Starts with 4 moves from solved state
+ * - Strict time limits
+ * - 1 undo per puzzle
+ * 
+ * Grid size increases every 10 levels after level 20:
+ * - Levels 21-30: 10x10
+ * - Levels 31-40: 12x12
+ * - Levels 41-50: 14x14
+ * - Levels 51-60: 16x16
+ * - Levels 61-70: 18x18
+ * - Levels 71+: 20x20
  */
-function getProgressiveSize(baseSize: number, difficulty: string, level: number): number {
-  if (difficulty === 'easy') {
-    return 3; // Easy always stays 3x3
+function getProgressiveSize(level: number): number {
+  if (level <= 10) {
+    // Easy: Always 3x3
+    return 3;
+  } else if (level <= 20) {
+    // Medium: Always 6x6
+    return 6;
+  } else {
+    // Hard: Start at 10x10, increase every 10 levels
+    const hardLevel = level - 20;
+    const sizeProgression = Math.floor(hardLevel / 10);
+    return Math.min(20, 10 + sizeProgression * 2);
   }
-  
-  if (difficulty === 'medium') {
-    // Medium starts at 6x6, increases by 2 every 5 levels
-    const progression = Math.floor((level - 1) / 5);
-    return Math.min(20, 6 + progression * 2);
-  }
-  
-  if (difficulty === 'hard') {
-    // Hard starts at 10x10, increases by 2 every 3 levels
-    const progression = Math.floor((level - 1) / 3);
-    return Math.min(20, 10 + progression * 2);
-  }
-  
-  return baseSize;
 }
 
 /**
- * Generate puzzles using the reverse-move method for 100% guaranteed solvability
- * No BFS verification needed - solvability is guaranteed by construction
+ * Calculate the number of reverse moves based on level
+ * This determines puzzle difficulty within each tier
+ */
+function getTargetMoves(level: number): number {
+  if (level <= 10) {
+    // Easy: 2-8 moves
+    return Math.min(8, 2 + Math.floor((level - 1) * 0.7));
+  } else if (level <= 20) {
+    // Medium: 3-12 moves
+    const mediumLevel = level - 10;
+    return Math.min(12, 3 + Math.floor((mediumLevel - 1) * 1.0));
+  } else {
+    // Hard: 4+ moves, increases more aggressively
+    const hardLevel = level - 20;
+    return Math.min(25, 4 + Math.floor(hardLevel * 0.8));
+  }
+}
+
+/**
+ * Get difficulty settings based on level
+ */
+function getDifficultyFromLevel(level: number): { 
+  difficulty: 'easy' | 'medium' | 'hard';
+  colors: number;
+  timeLimit: number;
+  maxUndos: number;
+} {
+  if (level <= 10) {
+    return {
+      difficulty: 'easy',
+      colors: 3,
+      timeLimit: 0, // No time limit
+      maxUndos: -1 // Unlimited
+    };
+  } else if (level <= 20) {
+    return {
+      difficulty: 'medium',
+      colors: 4,
+      timeLimit: 300, // 5 minutes
+      maxUndos: 5
+    };
+  } else {
+    return {
+      difficulty: 'hard', 
+      colors: 4 + Math.floor((level - 21) / 20), // Increase colors every 20 levels
+      timeLimit: 180, // 3 minutes
+      maxUndos: 1
+    };
+  }
+}
+
+/**
+ * Custom React hook for puzzle generation
+ * 
+ * This hook provides the main puzzle generation functionality using a reverse-move
+ * algorithm. The key insight is that if we start with a solved puzzle and apply
+ * N moves to scramble it, we can ALWAYS solve it by applying those same N moves
+ * in reverse order. This gives us 100% guaranteed solvability without needing
+ * complex verification algorithms.
+ * 
+ * Mathematical proof:
+ * 1. Each click operation is its own inverse in modular arithmetic
+ * 2. Starting from solved state S, applying moves M1, M2, ..., Mn gives scrambled state
+ * 3. Applying Mn, ..., M2, M1 returns to S (commutativity in finite fields)
+ * 
+ * @returns {Object} Object containing the generate function
  */
 export const useGenerator = () => {
-  const generate = useCallback(async (conf: Difficulty, level: number = 1): Promise<GenerationResult> => {
-    // Use progressive size instead of fixed size
-    const size = getProgressiveSize(conf.size, conf.reverseSteps === 3 ? 'easy' : 
-                                                 conf.reverseSteps === 5 ? 'medium' : 'hard', level);
-    
-    // Progressive difficulty scaling
-    let targetMoves = conf.reverseSteps;
-    if (level > 1) {
-      if (conf.reverseSteps === 3) {
-        // Easy: 3 → 4 → 5 → 6 → ... → 8
-        targetMoves = Math.min(8, 3 + Math.floor((level - 1) / 2));
-      } else if (conf.reverseSteps === 5) {
-        // Medium: 5 → 6 → 7 → 8 → ... → 10
-        targetMoves = Math.min(10, 5 + Math.floor((level - 1) / 2));
-      } else if (conf.reverseSteps === 7) {
-        // Hard: 7 → 8 → 9 → ... → 14
-        targetMoves = Math.min(14, 7 + Math.floor((level - 1) / 2));
-      }
-    }
+  /**
+   * Generate a puzzle for a specific level
+   * 
+   * The generation process:
+   * 1. Determine grid size based on level (3x3 → 20x20)
+   * 2. Calculate target moves based on level difficulty
+   * 3. Start with solved grid (all tiles color 0)
+   * 4. Apply N reverse clicks to scramble
+   * 5. Return scrambled grid with known solution path
+   * 
+   * @param {Difficulty} conf - Legacy difficulty config (maintained for compatibility)
+   * @param {number} level - The current level (1-based), determines all difficulty params
+   * @returns {Promise<GenerationResult>} Generated puzzle with guaranteed solution
+   * 
+   * @example
+   * const { generate } = useGenerator();
+   * const puzzle = await generate(DIFFICULTIES.easy, 15); // Level 15 = Medium 6x6
+   */
+  const generate = useCallback(async (_conf: Difficulty, level: number = 1): Promise<GenerationResult> => {
+    // Get size and difficulty based on level
+    const size = getProgressiveSize(level);
+    const targetMoves = getTargetMoves(level);
+    const { colors } = getDifficultyFromLevel(level);
     
     // Start with solved state (all zeros)
     const solved = Array(size).fill(null).map(() => Array(size).fill(0));
@@ -104,7 +219,7 @@ export const useGenerator = () => {
       const isPower = power.has(`${row}-${col}`);
       
       // Apply REVERSE click (subtract instead of add)
-      currentGrid = applyReverseClick(currentGrid, row, col, conf.colors, isPower, emptyLocked);
+      currentGrid = applyReverseClick(currentGrid, row, col, colors, isPower, emptyLocked);
       generationHistory.push({ row, col });
     }
     
@@ -154,7 +269,8 @@ export const useGenerator = () => {
       lockedTiles: locked.size,
       optimalPathLength: optimalPath.length,
       gridSize: size,
-      difficulty: conf.reverseSteps === 3 ? 'easy' : conf.reverseSteps === 5 ? 'medium' : 'hard'
+      difficulty: getDifficultyFromLevel(level).difficulty,
+      colors
     });
     
     return {

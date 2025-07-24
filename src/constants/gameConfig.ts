@@ -67,6 +67,7 @@ export const BELT_COLORS = {
   green: { name: 'Green', color: '#44DD44', minXP: 3000 },
   blue: { name: 'Blue', color: '#4444FF', minXP: 5000 },
   purple: { name: 'Purple', color: '#AA44FF', minXP: 8000 },
+  black: { name: 'Black', color: '#000000', minXP: 15000 }, // Master level
 } as const;
 
 export const ACHIEVEMENTS = [
