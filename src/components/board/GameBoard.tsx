@@ -155,8 +155,6 @@ const GameBoard: React.FC = () => {
     dispatch({ type: 'LOCK_DECR' });
   };
 
-  const boardSize = grid.length * tileSize + (grid.length - 1) * 4 + 16;
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -165,11 +163,9 @@ const GameBoard: React.FC = () => {
       className="relative flex flex-col items-center justify-center flex-1 py-2"
     >
       <div
-        className="grid gap-1 bg-black/20 backdrop-blur-sm p-2 rounded-xl"
+        className="grid gap-1 bg-black/20 backdrop-blur-sm p-2 rounded-xl max-w-full"
         style={{ 
-          gridTemplateColumns: `repeat(${grid.length}, ${tileSize}px)`,
-          width: `${boardSize}px`,
-          maxWidth: '100%'
+          gridTemplateColumns: `repeat(${grid.length}, minmax(0, ${tileSize}px))`
         }}
       >
         {grid.map((row, r) =>
@@ -199,7 +195,7 @@ const GameBoard: React.FC = () => {
                     repeatType: "reverse"
                   } : {}
                 }}
-                style={{ width: tileSize, height: tileSize }}
+                className="w-full aspect-square"
               >
                 <Tile
                   value={cell}
