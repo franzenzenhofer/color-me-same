@@ -2,16 +2,20 @@ import React, { useReducer, createContext, Dispatch, useContext, ReactNode } fro
 import { DIFFICULTIES, DifficultyKey } from '../constants/gameConfig';
 import { GenerationResult } from '../hooks/useGenerator';
 import { computeScore, getDifficultyBonus } from '../utils/score';
-import { isWinningState, effectMatrix, applyEffect } from '../utils/grid';
+import { isWinningState } from '../utils/grid';
+import { applyClick } from '../utils/gridV2';
+import { log } from '../utils/logger';
 
 interface GameState {
   // Game state
   difficulty: DifficultyKey;
   level: number; // Current level within difficulty
   grid: number[][];
+  initialGrid: number[][]; // Store initial scrambled state for reset
   solved: number[][];
   power: Set<string>;
   locked: Map<string, number>;
+  initialLocked: Map<string, number>; // Store initial locked state for reset
   
   // Game progress
   moves: number;
@@ -23,6 +27,8 @@ interface GameState {
   // Solution data
   solution: { row: number; col: number }[];
   reverse: { row: number; col: number }[];
+  optimalPath: { row: number; col: number }[]; // NEW: Exact reverse of generation
+  playerMoves: { row: number; col: number }[]; // NEW: Track player's actual moves
   
   // Player data
   score: number;
@@ -36,6 +42,11 @@ interface GameState {
   showVictory: boolean;
   showHints: boolean; // Show hints (level 1 auto or manual toggle)
   hintsEnabled: boolean; // Manual hint toggle from PowerUps
+  
+  // Undo functionality
+  undoHistory: { grid: number[][]; locked: Map<string, number>; moves: number; playerMoves: { row: number; col: number }[] }[];
+  undoCount: number; // Number of undos used
+  maxUndos: number; // Max undos allowed (unlimited = -1)
 }
 
 type Action =
@@ -49,15 +60,19 @@ type Action =
   | { type: 'ADD_XP'; amount: number }
   | { type: 'UNLOCK_ACHIEVEMENT'; id: string }
   | { type: 'NEXT_LEVEL' }
-  | { type: 'TOGGLE_HINTS'; enabled?: boolean };
+  | { type: 'TOGGLE_HINTS'; enabled?: boolean }
+  | { type: 'UNDO' }
+  | { type: 'RESET' };
 
 const initial: GameState = {
   difficulty: 'easy',
   level: 1,
   grid: [],
+  initialGrid: [],
   solved: [],
   power: new Set(),
   locked: new Map(),
+  initialLocked: new Map(),
   moves: 0,
   time: 0,
   started: false,
@@ -65,6 +80,8 @@ const initial: GameState = {
   paused: false,
   solution: [],
   reverse: [],
+  optimalPath: [],
+  playerMoves: [],
   score: 0,
   xp: 0,
   streak: 0,
@@ -74,6 +91,9 @@ const initial: GameState = {
   showVictory: false,
   showHints: false,
   hintsEnabled: false,
+  undoHistory: [],
+  undoCount: 0,
+  maxUndos: -1, // Unlimited for easy
 };
 
 interface GameContextType {
@@ -86,10 +106,40 @@ const GameContext = createContext<GameContextType>({
   dispatch: () => {},
 });
 
+/**
+ * Get max undos based on difficulty
+ * Easy: unlimited (-1)
+ * Medium: 5
+ * Hard: 1
+ */
+function getMaxUndos(difficulty: DifficultyKey): number {
+  switch (difficulty) {
+    case 'easy':
+      return -1; // Unlimited
+    case 'medium':
+      return 5;
+    case 'hard':
+      return 1;
+    default:
+      return -1;
+  }
+}
+
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'NEW_GAME': {
-      const { difficulty, level = 1, grid, solved, power, locked, solution, reverse } = action.payload;
+      const { 
+        difficulty, 
+        level = 1, 
+        grid, 
+        solved, 
+        power, 
+        locked, 
+        solution, 
+        reverse,
+        optimalPath = solution, // Use solution as optimal path if not provided
+        playerMoves = []
+      } = action.payload;
       // Show hints automatically on level 1 of any difficulty
       const showHints = level === 1;
       return {
@@ -97,9 +147,11 @@ function reducer(state: GameState, action: Action): GameState {
         difficulty,
         level,
         grid,
+        initialGrid: grid.map(row => [...row]), // Store initial state
         solved,
         power,
         locked,
+        initialLocked: new Map(locked), // Store initial locked state
         moves: 0,
         time: 0,
         started: true,
@@ -107,50 +159,90 @@ function reducer(state: GameState, action: Action): GameState {
         paused: false,
         solution,
         reverse,
+        optimalPath,
+        playerMoves,
         score: 0,
         showTutorial: false, // Don't auto-open modal
         showVictory: false,
         showHints,
         hintsEnabled: showHints, // Enable hints on level 1
+        undoHistory: [], // Reset undo history
+        undoCount: 0,
+        maxUndos: getMaxUndos(difficulty),
       };
     }
 
     case 'CLICK': {
       const { row, col } = action;
       if (state.won || state.paused) return state;
-      if (state.locked.has(`${row}-${col}`)) return state;
+      if (state.locked.has(`${row}-${col}`) && state.locked.get(`${row}-${col}`)! > 0) return state;
 
       const isPower = state.power.has(`${row}-${col}`);
-      const effect = effectMatrix(row, col, state.grid.length, isPower);
-      const nextGrid = applyEffect(state.grid, effect, state.locked, DIFFICULTIES[state.difficulty].colors);
-
+      const colors = DIFFICULTIES[state.difficulty].colors;
+      
+      // Save current state to undo history before making the move
+      const newUndoHistory = [...state.undoHistory, {
+        grid: state.grid.map(row => [...row]),
+        locked: new Map(state.locked),
+        moves: state.moves,
+        playerMoves: [...state.playerMoves]
+      }];
+      
+      // Apply click using the new pure function
+      const nextGrid = applyClick(state.grid, row, col, colors, isPower, state.locked);
+      
+      // Track player move
+      const newPlayerMoves = [...state.playerMoves, { row, col }];
+      
       const won = isWinningState(nextGrid);
       const newMoves = state.moves + 1;
+      
+      // Calculate score based on optimal path
       const score = won
         ? computeScore(
             newMoves,
-            state.solution.length,
+            state.optimalPath.length,
             state.time,
             DIFFICULTIES[state.difficulty].timeLimit,
             getDifficultyBonus(state.difficulty)
           )
         : state.score;
 
-      const newState = {
+      // Log move for debugging
+      const isOnOptimalPath = newPlayerMoves.length <= state.optimalPath.length &&
+        newPlayerMoves.every((m, i) => {
+          const opt = state.optimalPath[i];
+          return opt && m.row === opt.row && m.col === opt.col;
+        });
+        
+      log('debug', 'Player clicked', {
+        row,
+        col,
+        isPower,
+        moveNumber: newMoves,
+        optimalPathLength: state.optimalPath.length,
+        onOptimalPath: isOnOptimalPath
+      });
+
+      if (won) {
+        log('info', '🎉 PUZZLE SOLVED!', { 
+          moves: newMoves, 
+          optimalMoves: state.optimalPath.length,
+          score,
+          efficiency: Math.round((state.optimalPath.length / newMoves) * 100) + '%'
+        });
+      }
+
+      return {
         ...state,
         grid: nextGrid,
         moves: newMoves,
+        playerMoves: newPlayerMoves,
         won,
         score,
         showVictory: false, // Don't show victory modal immediately
+        undoHistory: newUndoHistory,
       };
-
-      // Log state for debugging
-      if (won) {
-        console.log('🎉 PUZZLE SOLVED!', { moves: newMoves, score, grid: nextGrid });
-      }
-
-      return newState;
     }
 
     case 'LOCK_DECR': {
@@ -229,6 +321,41 @@ function reducer(state: GameState, action: Action): GameState {
         ...state,
         hintsEnabled: enabled,
         showHints: enabled || state.level === 1, // Always show on level 1
+      };
+    }
+
+    case 'UNDO': {
+      // Check if undo is available
+      if (state.undoHistory.length === 0) return state;
+      if (state.maxUndos !== -1 && state.undoCount >= state.maxUndos) return state;
+      
+      // Get the last saved state
+      const lastState = state.undoHistory[state.undoHistory.length - 1];
+      
+      return {
+        ...state,
+        grid: lastState.grid,
+        locked: lastState.locked,
+        moves: lastState.moves,
+        playerMoves: lastState.playerMoves,
+        undoHistory: state.undoHistory.slice(0, -1),
+        undoCount: state.undoCount + 1,
+      };
+    }
+
+    case 'RESET': {
+      // Reset to initial puzzle state (after generation)
+      return {
+        ...state,
+        grid: state.initialGrid.map(row => [...row]),
+        locked: new Map(state.initialLocked),
+        moves: 0,
+        playerMoves: [],
+        undoHistory: [],
+        undoCount: 0,
+        won: false,
+        score: 0,
+        showVictory: false,
       };
     }
 

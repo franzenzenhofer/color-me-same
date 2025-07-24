@@ -2,20 +2,34 @@ import React, { useEffect, useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import Tile from './Tile';
 import { useDynamicHint } from '../../hooks/useDynamicHint';
+import { useSolvabilityCheck } from '../../hooks/useSolvabilityCheck';
 import { motion } from 'framer-motion';
+import { DIFFICULTIES } from '../../constants/gameConfig';
 
 const GameBoard: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { grid, power, locked, started, won, paused, difficulty, showHints } = state;
+  const { grid, power, locked, started, won, paused, difficulty, showHints, optimalPath, playerMoves } = state;
   const [tileSize, setTileSize] = useState(60);
   
-  // Dynamic hint calculation
-  const { nextMove: hintMove, isCalculating } = useDynamicHint(
+  // Dynamic hint calculation with optimal path tracking
+  const { nextMove: hintMove, isCalculating, isOnOptimalPath } = useDynamicHint(
     grid,
     power,
     locked,
     difficulty,
-    showHints && !won && !paused
+    showHints && !won && !paused,
+    optimalPath,
+    playerMoves
+  );
+  
+  // Check solvability after each move
+  const colors = DIFFICULTIES[difficulty].colors;
+  const { isSolvable, isChecking } = useSolvabilityCheck(
+    grid,
+    colors,
+    power,
+    locked,
+    started && !won // Only check during active gameplay
   );
   
   // Show victory modal after delay when puzzle is solved
@@ -150,7 +164,25 @@ const GameBoard: React.FC = () => {
         >
           <p className="text-sm">
             💡 Hint: Click the highlighted tile
+            {isOnOptimalPath && " (optimal path)"}
+            {!isOnOptimalPath && " (new path)"}
             {isCalculating && " (calculating...)"}
+          </p>
+        </motion.div>
+      )}
+      
+      {/* Unsolvable warning */}
+      {!isSolvable && !isChecking && !won && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-0 left-0 right-0 bg-red-600 text-white p-3 rounded-lg shadow-lg z-50"
+        >
+          <p className="text-center font-bold">
+            ⚠️ Warning: Puzzle has become unsolvable!
+          </p>
+          <p className="text-center text-sm mt-1">
+            This shouldn&apos;t happen with our generation method.
           </p>
         </motion.div>
       )}

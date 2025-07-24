@@ -56,18 +56,21 @@ describe('Tile Component', () => {
   it('should show power icon when power tile', () => {
     const { container } = render(<Tile {...defaultProps} power={true} />);
     
-    // Look for the power icon (Zap)
-    const powerIcon = container.querySelector('.animate-pulse-soft svg');
+    // Look for the power icon (Sparkles)
+    const powerIcon = container.querySelector('svg');
     expect(powerIcon).toBeInTheDocument();
+    // Check for the yellow gradient background
+    const powerContainer = container.querySelector('.from-yellow-300');
+    expect(powerContainer).toBeInTheDocument();
   });
 
   it('should apply highlight styles', () => {
     const { container } = render(<Tile {...defaultProps} highlight={true} />);
-    const button = container.querySelector('button');
     
-    expect(button?.className).toContain('ring-4');
-    expect(button?.className).toContain('ring-green-400');
-    expect(button?.className).toContain('scale-110');
+    // Check for the yellow dashed border highlight
+    const highlightBorder = container.querySelector('.border-yellow-400');
+    expect(highlightBorder).toBeInTheDocument();
+    expect(highlightBorder?.className).toContain('border-dashed');
   });
 
   it('should be disabled when disabled prop is true', () => {

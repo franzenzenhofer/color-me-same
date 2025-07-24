@@ -1,19 +1,17 @@
-import React, { useState } from 'react';
-import { Shuffle, Lock, RotateCcw, Lightbulb } from 'lucide-react';
+import React from 'react';
+import { Undo2, RotateCcw, Lightbulb } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { motion } from 'framer-motion';
 
 const PowerUps: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { started, won, paused, difficulty, hintsEnabled } = state;
+  const { started, won, paused, difficulty, hintsEnabled, undoHistory, undoCount, maxUndos } = state;
   
-  // Power-up states (these would be managed in context in full implementation)
-  const [wildcardUsed, setWildcardUsed] = useState(false);
-  const [freezeUsed, setFreezeUsed] = useState(false);
-  
-  // Easy mode gets unlimited resets, others get limited
+  // Easy mode gets unlimited undos
   const isEasyMode = difficulty === 'easy';
-  const [resetCount, setResetCount] = useState(isEasyMode ? -1 : 3); // -1 means unlimited
+  const hasUndos = undoHistory.length > 0;
+  const canUndo = hasUndos && (maxUndos === -1 || undoCount < maxUndos);
+  const undosRemaining = maxUndos === -1 ? -1 : Math.max(0, maxUndos - undoCount);
 
   if (!started) return null;
 
@@ -24,44 +22,33 @@ const PowerUps: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="grid grid-cols-4 gap-2 mb-4"
+      className="grid grid-cols-3 gap-2 mb-4"
     >
       <PowerUpButton
-        icon={<Shuffle size={20} />}
-        label="Wildcard"
-        disabled={wildcardUsed || disabled}
+        icon={<Undo2 size={20} />}
+        label="Undo"
+        count={undosRemaining === -1 ? undefined : undosRemaining}
+        showUnlimited={undosRemaining === -1}
+        disabled={!canUndo || disabled}
         onClick={() => {
-          setWildcardUsed(true);
-          // TODO: Implement wildcard logic
+          dispatch({ type: 'UNDO' });
         }}
-        tooltip="Randomize one tile"
-      />
-      
-      <PowerUpButton
-        icon={<Lock size={20} />}
-        label="Freeze"
-        disabled={freezeUsed || disabled}
-        onClick={() => {
-          setFreezeUsed(true);
-          // TODO: Implement freeze logic
-        }}
-        tooltip="Stop timer for 30s"
+        tooltip={
+          isEasyMode 
+            ? "Undo last move (unlimited)" 
+            : `Undo last move (${undosRemaining} left)`
+        }
       />
       
       <PowerUpButton
         icon={<RotateCcw size={20} />}
         label="Reset"
-        count={resetCount === -1 ? undefined : resetCount}
-        showUnlimited={resetCount === -1}
-        disabled={resetCount === 0 || disabled}
+        showUnlimited={isEasyMode}
+        disabled={disabled}
         onClick={() => {
-          if (resetCount !== -1) {
-            setResetCount(resetCount - 1);
-          }
-          // Reload page to reset game (simple solution)
-          window.location.reload();
+          dispatch({ type: 'RESET' });
         }}
-        tooltip={isEasyMode ? "Reset puzzle (unlimited)" : `Reset puzzle (${resetCount} left)`}
+        tooltip="Reset to start position"
       />
       
       <PowerUpButton

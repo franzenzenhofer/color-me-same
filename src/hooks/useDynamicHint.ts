@@ -2,10 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { bfsSolve } from './useSolver';
 import { isWinningState } from '../utils/grid';
 import { DIFFICULTIES } from '../constants/gameConfig';
+import { log } from '../utils/logger';
+import { isSolvable } from '../utils/solvability';
 
 interface HintResult {
   nextMove: { row: number; col: number } | null;
   isCalculating: boolean;
+  isOnOptimalPath: boolean;
 }
 
 export const useDynamicHint = (
@@ -13,47 +16,83 @@ export const useDynamicHint = (
   power: Set<string>,
   locked: Map<string, number>,
   difficulty: string,
-  enabled: boolean
+  enabled: boolean,
+  optimalPath: { row: number; col: number }[],
+  playerMoves: { row: number; col: number }[]
 ): HintResult => {
   const [nextMove, setNextMove] = useState<{ row: number; col: number } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isOnOptimalPath, setIsOnOptimalPath] = useState(true);
 
-  const calculateBestMove = useCallback(async () => {
+  const calculateHint = useCallback(async () => {
     if (!grid.length || !enabled || isWinningState(grid)) {
       setNextMove(null);
       return;
     }
 
     setIsCalculating(true);
+    
     try {
-      // Get current difficulty colors
-      const colors = DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].colors;
+      // Check if player is still on the optimal path
+      const movesMatch = playerMoves.every((move, index) => {
+        const optimalMove = optimalPath[index];
+        return optimalMove && move.row === optimalMove.row && move.col === optimalMove.col;
+      });
       
-      // Find shortest solution from current state
-      const { solution } = await bfsSolve(grid, power, locked, colors);
-      
-      if (solution.length > 0) {
-        // The first move in the solution is the best next move
-        setNextMove(solution[0]);
+      if (movesMatch && playerMoves.length < optimalPath.length) {
+        // Player is on track - return next move from optimal path
+        const nextOptimalMove = optimalPath[playerMoves.length];
+        setNextMove(nextOptimalMove);
+        setIsOnOptimalPath(true);
+        
+        log('debug', 'Player on optimal path', {
+          playerMoves: playerMoves.length,
+          nextMove: nextOptimalMove,
+          remainingMoves: optimalPath.length - playerMoves.length
+        });
       } else {
-        setNextMove(null);
+        // Player has diverged - calculate new shortest path
+        setIsOnOptimalPath(false);
+        const colors = DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].colors;
+        const { solution } = await bfsSolve(grid, power, locked, colors);
+        
+        if (solution.length > 0) {
+          setNextMove(solution[0]);
+          log('debug', 'Player diverged, new path calculated', {
+            playerMoves: playerMoves.length,
+            newPathLength: solution.length,
+            nextMove: solution[0]
+          });
+        } else {
+          // Double-check with mathematical solvability
+          const mathematicallySolvable = isSolvable(grid, colors, power, locked);
+          
+          if (mathematicallySolvable) {
+            log('warn', 'BFS failed but mathematically solvable - may need more search depth');
+          } else {
+            log('error', 'Grid is mathematically unsolvable!');
+          }
+          
+          setNextMove(null);
+        }
       }
     } catch (error) {
-      console.error('Failed to calculate hint:', error);
+      log('error', 'Failed to calculate hint', { error });
       setNextMove(null);
     } finally {
       setIsCalculating(false);
     }
-  }, [grid, power, locked, difficulty, enabled]);
+  }, [grid, power, locked, difficulty, enabled, optimalPath, playerMoves]);
 
-  // Recalculate whenever game state changes
+  // Recalculate whenever dependencies change
   useEffect(() => {
     if (enabled) {
-      calculateBestMove();
+      calculateHint();
     } else {
       setNextMove(null);
+      setIsOnOptimalPath(true);
     }
-  }, [calculateBestMove, enabled]);
+  }, [calculateHint, enabled]);
 
-  return { nextMove, isCalculating };
+  return { nextMove, isCalculating, isOnOptimalPath };
 };

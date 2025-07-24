@@ -30,32 +30,32 @@ export const DIFFICULTIES: Record<DifficultyKey, Difficulty> = {
     reverseSteps: 3, 
     maxMoves: 0, 
     maxLockedTiles: 0,
-    powerTileChance: 0, 
+    powerTileChance: 0, // Disabled - power tiles stashed for now
     timeLimit: 0, 
     tutorial: false,
     description: 'Perfect for learning! No limits.' 
   },
   medium: { 
-    size: 4, 
+    size: 6, // Changed from 4 to 6x6 
     colors: 4, 
     reverseSteps: 5, 
     maxMoves: 25, 
-    maxLockedTiles: 1,
-    powerTileChance: 0.1, 
+    maxLockedTiles: 0, // Disabled - locked tiles stashed for now
+    powerTileChance: 0, // Disabled - power tiles stashed for now
     timeLimit: 0, 
     tutorial: false,
-    description: 'Special tiles & larger board.' 
+    description: 'Larger 6x6 board with more colors.' 
   },
   hard: { 
-    size: 5, 
+    size: 10, // Changed from 5 to 10x10
     colors: 4, 
     reverseSteps: 7, 
     maxMoves: 35, 
-    maxLockedTiles: 2,
-    powerTileChance: 0.15, 
+    maxLockedTiles: 0, // Disabled - locked tiles stashed for now
+    powerTileChance: 0, // Disabled - power tiles stashed for now
     timeLimit: 600, 
     tutorial: false,
-    description: 'Timer & hardest puzzles.' 
+    description: 'Massive 10x10 board & timer challenge.' 
   },
 };
 

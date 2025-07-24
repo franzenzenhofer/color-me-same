@@ -13,6 +13,8 @@ vi.mock('../../hooks/useGenerator', () => ({
       locked: new Map([['1-1', 2]]),
       solution: [{ row: 0, col: 0 }],
       reverse: [{ row: 1, col: 1 }],
+      optimalPath: [{ row: 0, col: 0 }],
+      playerMoves: [],
     }),
   }),
 }));
@@ -46,6 +48,8 @@ describe('GameContext', () => {
           locked: new Map([['1-0', 3]]),
           solution: [],
           reverse: [],
+          optimalPath: [],
+          playerMoves: [],
         },
       });
     });
@@ -74,6 +78,8 @@ describe('GameContext', () => {
           locked: new Map(),
           solution: [],
           reverse: [],
+          optimalPath: [],
+          playerMoves: [],
         },
       });
     });
@@ -106,6 +112,8 @@ describe('GameContext', () => {
           locked: new Map([['0-0', 2]]),
           solution: [],
           reverse: [],
+          optimalPath: [],
+          playerMoves: [],
         },
       });
     });
@@ -129,12 +137,14 @@ describe('GameContext', () => {
         type: 'NEW_GAME',
         payload: {
           difficulty: 'easy',
-          grid: [[0, 1], [1, 1]], // One move away from winning
+          grid: [[1, 0], [0, 0]], // One move away from winning - click (0,0) makes all 0
           solved: [[0, 0], [0, 0]],
           power: new Set(),
           locked: new Map(),
           solution: [{ row: 0, col: 0 }],
           reverse: [],
+          optimalPath: [{ row: 0, col: 0 }],
+          playerMoves: [],
         },
       });
     });
@@ -145,7 +155,7 @@ describe('GameContext', () => {
     
     expect(result.current.state.won).toBe(true);
     expect(result.current.state.score).toBeGreaterThan(0);
-    expect(result.current.state.showVictory).toBe(true);
+    expect(result.current.state.showVictory).toBe(false); // Victory modal shows after delay
   });
 
   it('should handle TICK action', () => {
@@ -162,6 +172,8 @@ describe('GameContext', () => {
           locked: new Map(),
           solution: [],
           reverse: [],
+          optimalPath: [],
+          playerMoves: [],
         },
       });
     });
@@ -194,6 +206,8 @@ describe('GameContext', () => {
           locked: new Map(),
           solution: [],
           reverse: [],
+          optimalPath: [],
+          playerMoves: [],
         },
       });
     });
@@ -241,6 +255,8 @@ describe('GameContext', () => {
           locked: new Map([['0-0', 3], ['0-1', 1]]),
           solution: [],
           reverse: [],
+          optimalPath: [],
+          playerMoves: [],
         },
       });
     });

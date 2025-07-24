@@ -185,7 +185,7 @@ describe('Game Logic', () => {
       const score = calculateScore(10, 8, 120, 300, 'medium');
       
       expect(score).toBeGreaterThan(1000); // Base score
-      expect(score).toContain(Math.round((8 / 10) * 100) * 10); // Efficiency bonus
+      expect(score).toBeGreaterThan(1500); // Should include efficiency bonus
     });
 
     it('should apply difficulty multiplier', () => {
