@@ -54,13 +54,13 @@ export interface GenerationResult {
  * 
  * Levels 11-20: MEDIUM MODE  
  * - 6x6 grid
- * - Starts with 3 moves from solved state
+ * - Starts with 4 moves from solved state (harder!)
  * - Time limits apply
  * - 5 undos per puzzle
  * 
  * Levels 21+: HARD MODE
  * - 10x10 grid initially
- * - Starts with 4 moves from solved state
+ * - Starts with 5 moves from solved state (even harder!)
  * - Strict time limits
  * - 1 undo per puzzle
  * 
@@ -96,13 +96,13 @@ function getTargetMoves(level: number): number {
     // Easy: 2-8 moves
     return Math.min(8, 2 + Math.floor((level - 1) * 0.7));
   } else if (level <= 20) {
-    // Medium: 3-12 moves
+    // Medium: 4-14 moves (starts harder)
     const mediumLevel = level - 10;
-    return Math.min(12, 3 + Math.floor((mediumLevel - 1) * 1.0));
+    return Math.min(14, 4 + Math.floor((mediumLevel - 1) * 1.1));
   } else {
-    // Hard: 4+ moves, increases more aggressively
+    // Hard: 5+ moves, increases more aggressively (even harder start)
     const hardLevel = level - 20;
-    return Math.min(25, 4 + Math.floor(hardLevel * 0.8));
+    return Math.min(30, 5 + Math.floor(hardLevel * 1.2));
   }
 }
 

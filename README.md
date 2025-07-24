@@ -33,8 +33,8 @@ A challenging and addictive puzzle game where you make all tiles the same color,
 ### 🟡 Medium Mode (Levels 11-20)
 - **Grid Size**: 6x6 throughout
 - **Colors**: 4
-- **Starting Moves**: 3 clicks from solved state
-- **Progression**: Increases to 12 moves
+- **Starting Moves**: 4 clicks from solved state (challenging!)
+- **Progression**: Increases to 14 moves
 - **Time Limit**: 5 minutes per puzzle
 - **Undos**: 5 per puzzle
 - **Hints**: Auto-enabled on level 11
@@ -48,7 +48,7 @@ A challenging and addictive puzzle game where you make all tiles the same color,
   - Levels 61-70: 18x18
   - Levels 71+: 20x20
 - **Colors**: 4+ (increases every 20 levels)
-- **Starting Moves**: 4 clicks from solved state
+- **Starting Moves**: 5 clicks from solved state (very challenging!)
 - **Progression**: Aggressive difficulty scaling
 - **Time Limit**: 3 minutes per puzzle
 - **Undos**: Only 1 per puzzle

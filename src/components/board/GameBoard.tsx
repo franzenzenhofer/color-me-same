@@ -95,59 +95,47 @@ const GameBoard: React.FC = () => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       
-      // === UI Space Reservation ===
-      // We need to reserve space for various UI elements:
-      // - Dashboard: ~60px (stats, timer, moves)
-      // - PowerUps: ~80px (undo, reset, hint buttons)
-      // - ColorCycleInfo: ~60px (shows color progression)
-      // - ProgressBar: ~40px (level progress)
-      // - Additional padding and margins
-      const baseUIHeight = 280;
+      // Calculate using viewport width for true responsiveness
+      // Reserve 4% of viewport width for padding
+      const availableVw = 96;
       
-      // Dynamic reservation based on device type
-      const reservedHeight = viewportWidth < 768 
-        ? Math.min(baseUIHeight, viewportHeight * 0.45) // Mobile: max 45% for UI
-        : Math.min(baseUIHeight + 50, viewportHeight * 0.35); // Desktop: max 35% for UI
+      // Gap between tiles as percentage of viewport width
+      const tileGapVw = 0.3; // 0.3vw gap
+      const totalGapVw = tileGapVw * (grid.length - 1);
       
-      // Responsive padding
-      const padding = viewportWidth < 768 ? 12 : 24; // Less padding on mobile
+      // Calculate tile size in vw units
+      const tileWidthVw = (availableVw - totalGapVw) / grid.length;
       
-      const availableWidth = viewportWidth - padding;
-      const availableHeight = viewportHeight - reservedHeight;
+      // Convert vw to pixels
+      const tileWidthPx = (tileWidthVw / 100) * viewportWidth;
       
-      // Gap between tiles
-      const tileGap = 4;
-      const boardPadding = 16;
+      // Calculate height-based size with dynamic UI reservation
+      const uiReservation = viewportWidth < 768 
+        ? Math.min(260, viewportHeight * 0.35) // Mobile: max 35% for UI
+        : Math.min(280, viewportHeight * 0.28); // Desktop: max 28% for UI
       
-      // Calculate max tile size that fits in available space
-      const maxTileWidth = Math.floor(
-        (availableWidth - boardPadding - (grid.length - 1) * tileGap) / grid.length
-      );
-      const maxTileHeight = Math.floor(
-        (availableHeight - boardPadding - (grid.length - 1) * tileGap) / grid.length
-      );
+      const availableHeight = viewportHeight - uiReservation;
+      const tileGapPx = (tileGapVw / 100) * viewportWidth;
+      const totalGapPxHeight = tileGapPx * (grid.length - 1);
+      const tileHeightPx = (availableHeight - totalGapPxHeight - 20) / grid.length;
       
-      // Use the smaller dimension to ensure board fits both ways
-      let calculatedSize = Math.min(maxTileWidth, maxTileHeight);
+      // Use the smaller dimension to maintain square tiles
+      let calculatedSize = Math.min(tileWidthPx, tileHeightPx);
       
-      // Don't artificially limit tile size - let it use available space
-      // Only apply minimum size to ensure visibility
-      const minSize = grid.length >= 20 ? 20 : 
-                      grid.length >= 16 ? 25 :
-                      grid.length >= 12 ? 30 :
-                      grid.length >= 10 ? 35 :
-                      grid.length >= 6 ? 40 : 45;
+      // Dynamic minimum sizes based on grid size
+      const minSize = grid.length >= 20 ? 15 : 
+                      grid.length >= 16 ? 18 :
+                      grid.length >= 12 ? 22 :
+                      grid.length >= 10 ? 28 :
+                      grid.length >= 6 ? 35 : 45;
       
-      // For very large grids on small screens, ensure they fit
-      if (viewportWidth < 768 && grid.length > 12) {
-        const mobileMax = Math.floor((viewportWidth - 20) / grid.length) - 1;
-        calculatedSize = Math.min(calculatedSize, mobileMax);
-      }
+      // Maximum size to prevent tiles from being too large on big screens
+      const maxSize = viewportWidth < 768 ? 65 : 85;
       
-      // Apply minimum size
-      calculatedSize = Math.max(minSize, calculatedSize);
+      // Apply constraints
+      calculatedSize = Math.max(minSize, Math.min(maxSize, calculatedSize));
       
-      setTileSize(calculatedSize);
+      setTileSize(Math.floor(calculatedSize));
     };
     
     calculateTileSize();
