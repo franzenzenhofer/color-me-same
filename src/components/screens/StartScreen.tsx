@@ -7,12 +7,14 @@ import { DIFFICULTIES } from '../../constants/gameConfig';
 import { motion } from 'framer-motion';
 import { Play, RotateCcw, Trophy, TrendingUp, Target } from 'lucide-react';
 import { formatPoints } from '../../utils/scoring';
+import { useStartScreenStats } from '../../hooks/useStartScreenStats';
 import { MilestoneProgress } from '../ui/MilestoneProgress';
 
 const StartScreen: React.FC = () => {
   const { state, dispatch } = useGame();
   const { generate } = useGenerator();
-  const { hasSave, clearSave, currentLevel, totalPoints, completedLevels } = useSaveGame();
+  const { hasSave, clearSave } = useSaveGame();
+  const stats = useStartScreenStats();
   const [loading, setLoading] = useState(false);
   const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
 
@@ -68,10 +70,10 @@ const StartScreen: React.FC = () => {
         });
       } else {
         // Fallback to new game if save is corrupted
-        const puzzle = await generate(DIFFICULTIES.easy, currentLevel);
+        const puzzle = await generate(DIFFICULTIES.easy, stats.currentLevel);
         dispatch({ 
           type: 'NEW_GAME', 
-          payload: { level: currentLevel, ...puzzle } 
+          payload: { level: stats.currentLevel, ...puzzle } 
         });
       }
     } catch (error) {
@@ -82,22 +84,8 @@ const StartScreen: React.FC = () => {
   
   // Calculate best streak from completed levels
   const calculateBestStreak = () => {
-    if (completedLevels.length === 0) return 0;
-    
-    const sorted = [...completedLevels].sort((a, b) => a - b);
-    let maxStreak = 1;
-    let currentStreak = 1;
-    
-    for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i] === sorted[i - 1] + 1) {
-        currentStreak++;
-        maxStreak = Math.max(maxStreak, currentStreak);
-      } else {
-        currentStreak = 1;
-      }
-    }
-    
-    return maxStreak;
+    // Just return the pre-calculated best streak from saved stats
+    return stats.bestStreak;
   };
 
   return (
@@ -154,7 +142,7 @@ const StartScreen: React.FC = () => {
                     <span className="font-bold text-xl">CONTINUE</span>
                   </div>
                   <span className="text-sm opacity-90">
-                    Level {currentLevel} • {formatPoints(totalPoints)}
+                    Level {stats.currentLevel} • {formatPoints(stats.totalPoints)}
                   </span>
                 </>
               )}
@@ -202,14 +190,14 @@ const StartScreen: React.FC = () => {
             <div className="flex justify-center mb-1">
               <Target size={20} className="opacity-60" />
             </div>
-            <div className="text-lg font-semibold">{completedLevels.length}</div>
+            <div className="text-lg font-semibold">{stats.completedLevels}</div>
             <div className="text-xs opacity-70">Completed</div>
           </div>
           <div className="text-center">
             <div className="flex justify-center mb-1">
               <Trophy size={20} className="opacity-60" />
             </div>
-            <div className="text-lg font-semibold">{formatPoints(totalPoints)}</div>
+            <div className="text-lg font-semibold">{formatPoints(stats.totalPoints)}</div>
             <div className="text-xs opacity-70">Total Points</div>
           </div>
           <div className="text-center">
@@ -254,7 +242,7 @@ const StartScreen: React.FC = () => {
               Start New Game?
             </h3>
             <p className="text-gray-600 mb-4">
-              This will erase your current progress at Level {currentLevel}.
+              This will erase your current progress at Level {stats.currentLevel}.
             </p>
             <div className="flex gap-3">
               <button

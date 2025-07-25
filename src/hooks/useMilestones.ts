@@ -73,24 +73,26 @@ export const useMilestones = () => {
     const stats = getPlayerStats();
     const newlyUnlocked = milestoneManager.checkMilestones(stats);
     
-    // Show celebration for each unlocked milestone
-    newlyUnlocked.forEach((milestone, index) => {
-      setTimeout(() => {
-        const celebration = milestoneManager.getCelebrationData(milestone);
-        
-        // Show minimal celebration toast
-        showToast(
-          `${celebration.icon} ${celebration.title}`,
-          'success',
-          2000
-        );
-        
-        log('info', 'Milestone celebration shown', {
-          milestone: milestone.id,
-          type: milestone.celebrationType
-        });
-      }, index * 2000); // Stagger multiple celebrations
-    });
+    // Show celebration for each unlocked milestone (except speed demon)
+    newlyUnlocked
+      .filter(milestone => milestone.id !== 'speed_30s') // Skip speed demon toast
+      .forEach((milestone, index) => {
+        setTimeout(() => {
+          const celebration = milestoneManager.getCelebrationData(milestone);
+          
+          // Show minimal celebration toast
+          showToast(
+            `${celebration.icon} ${celebration.title}`,
+            'success',
+            2000
+          );
+          
+          log('info', 'Milestone celebration shown', {
+            milestone: milestone.id,
+            type: milestone.celebrationType
+          });
+        }, index * 2000); // Stagger multiple celebrations
+      });
     
     // Update next milestone
     const next = milestoneManager.getNextMilestone(stats);

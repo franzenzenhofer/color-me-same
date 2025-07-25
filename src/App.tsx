@@ -31,6 +31,7 @@ import StartScreen from './components/screens/StartScreen';
 import { VersionInfo } from './components/VersionInfo';
 import Header from './components/layout/Header';
 import SaveGameLoader from './components/SaveGameLoader';
+import WinDetector from './components/WinDetector';
 import { ToastProvider } from './context/ToastContext';
 
 /**
@@ -75,6 +76,7 @@ const App: React.FC = () => {
               <PowerUps />
               <GameBoard />
               <ColorCycleInfo />
+              <WinDetector />
               <TutorialModal />
               <VictoryModal onShowAchievements={showAchievements} />
               <AchievementModal
