@@ -23,7 +23,6 @@ import Tile from './Tile';
 import { useDynamicHint } from '../../hooks/useDynamicHint';
 import { useSolvabilityCheck } from '../../hooks/useSolvabilityCheck';
 import { motion } from 'framer-motion';
-import { DIFFICULTIES } from '../../constants/gameConfig';
 
 /**
  * GameBoard Component - Renders the interactive puzzle grid
@@ -40,21 +39,21 @@ import { DIFFICULTIES } from '../../constants/gameConfig';
  */
 const GameBoard: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { grid, power, locked, started, won, paused, difficulty, showHints, optimalPath, playerMoves } = state;
+  const { grid, power, locked, started, won, paused, level, showHints, optimalPath, playerMoves } = state;
   
   // Dynamic hint calculation with optimal path tracking
   const { nextMove: hintMove, isCalculating, isOnOptimalPath } = useDynamicHint(
     grid,
     power,
     locked,
-    difficulty,
+    level,
     showHints && !won && !paused,
     optimalPath,
     playerMoves
   );
   
   // Check solvability after each move
-  const colors = DIFFICULTIES[difficulty].colors;
+  const colors = level <= 20 ? 3 : level <= 50 ? 4 : 5; // Will be replaced by level generation
   const { isSolvable, isChecking } = useSolvabilityCheck(
     grid,
     colors,

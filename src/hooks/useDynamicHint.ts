@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { bfsSolve } from './useSolver';
 import { isWinningState } from '../utils/grid';
-import { DIFFICULTIES } from '../constants/gameConfig';
 import { log } from '../utils/logger';
 import { isSolvable } from '../utils/solvability';
 
@@ -15,7 +14,7 @@ export const useDynamicHint = (
   grid: number[][],
   power: Set<string>,
   locked: Map<string, number>,
-  difficulty: string,
+  level: number,
   enabled: boolean,
   optimalPath: { row: number; col: number }[],
   playerMoves: { row: number; col: number }[]
@@ -53,7 +52,7 @@ export const useDynamicHint = (
       } else {
         // Player has diverged - calculate new shortest path
         setIsOnOptimalPath(false);
-        const colors = DIFFICULTIES[difficulty as keyof typeof DIFFICULTIES].colors;
+        const colors = level <= 20 ? 3 : level <= 50 ? 4 : 5; // Will be replaced by level generation
         const { solution } = await bfsSolve(grid, power, locked, colors);
         
         if (solution.length > 0) {
@@ -82,7 +81,7 @@ export const useDynamicHint = (
     } finally {
       setIsCalculating(false);
     }
-  }, [grid, power, locked, difficulty, enabled, optimalPath, playerMoves]);
+  }, [grid, power, locked, level, enabled, optimalPath, playerMoves]);
 
   // Recalculate whenever dependencies change
   useEffect(() => {

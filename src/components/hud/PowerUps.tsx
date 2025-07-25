@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 
 const PowerUps: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { started, won, paused, difficulty, hintsEnabled, undoHistory, undoCount, maxUndos } = state;
+  const { started, won, paused, level, hintsEnabled, undoHistory, undoCount, maxUndos } = state;
   
-  // Easy mode gets unlimited undos
-  const isEasyMode = difficulty === 'easy';
+  // Tutorial levels (1-10) get unlimited undos
+  const isTutorialLevel = level <= 10;
   const hasUndos = undoHistory.length > 0;
   const canUndo = hasUndos && (maxUndos === -1 || undoCount < maxUndos);
   const undosRemaining = maxUndos === -1 ? -1 : Math.max(0, maxUndos - undoCount);
@@ -34,7 +34,7 @@ const PowerUps: React.FC = () => {
           dispatch({ type: 'UNDO' });
         }}
         tooltip={
-          isEasyMode 
+          isTutorialLevel 
             ? "Undo last move (unlimited)" 
             : `Undo last move (${undosRemaining} left)`
         }
@@ -43,7 +43,7 @@ const PowerUps: React.FC = () => {
       <PowerUpButton
         icon={<RotateCcw size={18} />}
         label="Reset"
-        showUnlimited={isEasyMode}
+        showUnlimited={isTutorialLevel}
         disabled={disabled}
         onClick={() => {
           dispatch({ type: 'RESET' });
@@ -55,12 +55,12 @@ const PowerUps: React.FC = () => {
         icon={<Lightbulb size={18} />}
         label="Hint"
         active={hintsEnabled}
-        showUnlimited={isEasyMode}
+        showUnlimited={isTutorialLevel}
         disabled={disabled}
         onClick={() => {
           dispatch({ type: 'TOGGLE_HINTS' });
         }}
-        tooltip={isEasyMode ? "Show hints (unlimited)" : "Show next move"}
+        tooltip={isTutorialLevel ? "Show hints (unlimited)" : "Show next move"}
       />
     </motion.div>
   );

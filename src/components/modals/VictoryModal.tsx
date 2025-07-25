@@ -11,7 +11,7 @@ interface VictoryModalProps {
 
 const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShowAchievements }) => {
   const { state, dispatch } = useGame();
-  const { showVictory, won, score, moves, solution, time, difficulty, level } = state;
+  const { showVictory, won, score, moves, solution, time, level } = state;
   const { generate } = useGenerator();
 
   if (!showVictory) return null;
@@ -33,12 +33,12 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
     // Progress to next level
     dispatch({ type: 'NEXT_LEVEL' });
     
-    // Generate new game with same difficulty but higher level
+    // Generate new game for next level
     const nextLevel = level + 1;
-    const result = await generate(DIFFICULTIES[difficulty], nextLevel);
+    const result = await generate(DIFFICULTIES.easy, nextLevel); // Dummy config, will be replaced
     dispatch({ 
       type: 'NEW_GAME', 
-      payload: { ...result, difficulty, level: nextLevel } 
+      payload: { ...result, level: nextLevel } 
     });
   };
 

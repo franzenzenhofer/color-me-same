@@ -31,7 +31,7 @@ describe('GameContext', () => {
     expect(result.current.state.moves).toBe(0);
     expect(result.current.state.time).toBe(0);
     expect(result.current.state.score).toBe(0);
-    expect(result.current.state.difficulty).toBe('easy');
+    expect(result.current.state.level).toBe(1);
   });
 
   it('should handle NEW_GAME action', () => {
@@ -41,7 +41,7 @@ describe('GameContext', () => {
       result.current.dispatch({
         type: 'NEW_GAME',
         payload: {
-          difficulty: 'medium',
+          level: 15,
           grid: [[1, 2], [3, 0]],
           solved: [[0, 0], [0, 0]],
           power: new Set(['0-1']),
@@ -55,7 +55,7 @@ describe('GameContext', () => {
     });
     
     expect(result.current.state.started).toBe(true);
-    expect(result.current.state.difficulty).toBe('medium');
+    expect(result.current.state.level).toBe(15);
     expect(result.current.state.grid).toEqual([[1, 2], [3, 0]]);
     expect(result.current.state.power.has('0-1')).toBe(true);
     expect(result.current.state.locked.get('1-0')).toBe(3);
@@ -71,7 +71,7 @@ describe('GameContext', () => {
       result.current.dispatch({
         type: 'NEW_GAME',
         payload: {
-          difficulty: 'easy',
+          level: 1,
           grid: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
           solved: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
           power: new Set(),
@@ -105,7 +105,7 @@ describe('GameContext', () => {
       result.current.dispatch({
         type: 'NEW_GAME',
         payload: {
-          difficulty: 'medium',
+          level: 15,
           grid: [[0, 0], [0, 0]],
           solved: [[0, 0], [0, 0]],
           power: new Set(),
@@ -136,7 +136,7 @@ describe('GameContext', () => {
       result.current.dispatch({
         type: 'NEW_GAME',
         payload: {
-          difficulty: 'easy',
+          level: 1,
           grid: [[1, 0], [0, 0]], // One move away from winning - click (0,0) makes all 0
           solved: [[0, 0], [0, 0]],
           power: new Set(),
@@ -165,7 +165,7 @@ describe('GameContext', () => {
       result.current.dispatch({
         type: 'NEW_GAME',
         payload: {
-          difficulty: 'easy',
+          level: 1,
           grid: [[0]],
           solved: [[0]],
           power: new Set(),
@@ -199,7 +199,7 @@ describe('GameContext', () => {
       result.current.dispatch({
         type: 'NEW_GAME',
         payload: {
-          difficulty: 'hard', // Has time limit
+          level: 30, // Higher level for time limit testing
           grid: [[0]],
           solved: [[0]],
           power: new Set(),
@@ -248,7 +248,7 @@ describe('GameContext', () => {
       result.current.dispatch({
         type: 'NEW_GAME',
         payload: {
-          difficulty: 'medium',
+          level: 15,
           grid: [[0]],
           solved: [[0]],
           power: new Set(),

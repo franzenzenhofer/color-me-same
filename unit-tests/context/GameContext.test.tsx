@@ -36,7 +36,7 @@ describe('GameContext', () => {
     const { result } = renderHook(() => useGame(), { wrapper });
     
     expect(result.current.state.started).toBe(false);
-    expect(result.current.state.difficulty).toBe('easy');
+    expect(result.current.state.level).toBe(1);
     expect(result.current.state.grid).toEqual([]);
     expect(result.current.state.moves).toBe(0);
     expect(result.current.state.time).toBe(0);
@@ -44,38 +44,79 @@ describe('GameContext', () => {
   });
 
   describe('NEW_GAME action', () => {
-    it('starts a new game with selected difficulty', () => {
+    it('starts a new game at specified level', () => {
       const { result } = renderHook(() => useGame(), { wrapper });
       
+      const mockGrid = [[0, 1], [1, 0]];
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'medium' });
+        result.current.dispatch({ 
+          type: 'NEW_GAME', 
+          payload: {
+            level: 5,
+            grid: mockGrid,
+            solved: [[0, 0], [0, 0]],
+            power: new Set<string>(),
+            locked: new Map<string, number>(),
+            solution: [],
+            reverse: [],
+            optimalPath: [],
+            playerMoves: []
+          }
+        });
       });
       
       expect(result.current.state.started).toBe(true);
-      expect(result.current.state.difficulty).toBe('medium');
-      expect(result.current.state.grid).toHaveLength(DIFFICULTIES.medium.size);
+      expect(result.current.state.level).toBe(5);
+      expect(result.current.state.grid).toEqual(mockGrid);
       expect(result.current.state.moves).toBe(0);
       expect(result.current.state.showTutorial).toBe(false);
     });
 
-    it('generates power tiles for medium difficulty', () => {
+    it('enables hints for tutorial levels', () => {
       const { result } = renderHook(() => useGame(), { wrapper });
       
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'medium' });
+        result.current.dispatch({ 
+          type: 'NEW_GAME', 
+          payload: {
+            level: 2,
+            grid: [[0]],
+            solved: [[0]],
+            power: new Set<string>(),
+            locked: new Map<string, number>(),
+            solution: [],
+            reverse: [],
+            optimalPath: [],
+            playerMoves: []
+          }
+        });
       });
       
-      expect(result.current.state.power.size).toBeGreaterThan(0);
+      expect(result.current.state.showHints).toBe(true);
+      expect(result.current.state.hintsEnabled).toBe(true);
     });
 
-    it('generates locked tiles for hard difficulty', () => {
+    it('configures undos based on level', () => {
       const { result } = renderHook(() => useGame(), { wrapper });
       
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'hard' });
+        result.current.dispatch({ 
+          type: 'NEW_GAME', 
+          payload: {
+            level: 25,
+            grid: [[0]],
+            solved: [[0]],
+            power: new Set<string>(),
+            locked: new Map<string, number>(),
+            solution: [],
+            reverse: [],
+            optimalPath: [],
+            playerMoves: []
+          }
+        });
       });
       
-      expect(result.current.state.locked.size).toBeGreaterThan(0);
+      expect(result.current.state.maxUndos).toBe(10);
     });
   });
 

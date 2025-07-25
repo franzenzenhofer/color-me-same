@@ -18,9 +18,8 @@
  */
 
 import React, { useReducer, createContext, Dispatch, useContext, ReactNode } from 'react';
-import { DIFFICULTIES, DifficultyKey } from '../constants/gameConfig';
 import { GenerationResult } from '../hooks/useGenerator';
-import { computeScore, getDifficultyBonus } from '../utils/score';
+import { computeScore } from '../utils/score';
 import { isWinningState } from '../utils/grid';
 import { applyClick } from '../utils/gridV2';
 import { log } from '../utils/logger';
@@ -35,8 +34,6 @@ import { log } from '../utils/logger';
  */
 interface GameState {
   // === Puzzle Configuration ===
-  /** Current difficulty mode based on level */
-  difficulty: DifficultyKey;
   /** Current level number (1-based, determines all difficulty parameters) */
   level: number;
   /** Current puzzle grid state (2D array of color indices) */
@@ -111,7 +108,7 @@ interface GameState {
 }
 
 type Action =
-  | { type: 'NEW_GAME'; payload: { difficulty: DifficultyKey; level?: number } & GenerationResult }
+  | { type: 'NEW_GAME'; payload: { level?: number } & GenerationResult }
   | { type: 'CLICK'; row: number; col: number }
   | { type: 'LOCK_DECR' }
   | { type: 'TICK' }
@@ -126,7 +123,6 @@ type Action =
   | { type: 'RESET' };
 
 const initial: GameState = {
-  difficulty: 'easy',
   level: 1,
   grid: [],
   initialGrid: [],
@@ -200,18 +196,14 @@ function reducer(state: GameState, action: Action): GameState {
         playerMoves = []
       } = action.payload;
       
-      // Determine actual difficulty based on level
-      const levelDifficulty = level <= 10 ? 'easy' : level <= 20 ? 'medium' : 'hard';
+      // Show hints automatically on tutorial levels (1-3)
+      const showHints = level >= 1 && level <= 3;
       
-      // Show hints automatically on first level of each difficulty tier
-      const showHints = level === 1 || level === 11 || level === 21;
-      
-      // Get max undos based on level
-      const maxUndos = level <= 10 ? -1 : level <= 20 ? 5 : 1;
+      // Get max undos based on level progression
+      const maxUndos = level <= 10 ? -1 : level <= 30 ? 10 : Math.max(1, 15 - Math.floor(level / 10));
       
       return {
         ...state,
-        difficulty: levelDifficulty as DifficultyKey,
         level,
         grid,
         initialGrid: grid.map(row => [...row]), // Store initial state
@@ -232,7 +224,7 @@ function reducer(state: GameState, action: Action): GameState {
         showTutorial: false, // Don't auto-open modal
         showVictory: false,
         showHints,
-        hintsEnabled: showHints, // Enable hints on first level of each tier
+        hintsEnabled: showHints, // Enable hints on tutorial levels
         undoHistory: [], // Reset undo history
         undoCount: 0,
         maxUndos,
@@ -245,7 +237,8 @@ function reducer(state: GameState, action: Action): GameState {
       if (state.locked.has(`${row}-${col}`) && state.locked.get(`${row}-${col}`)! > 0) return state;
 
       const isPower = state.power.has(`${row}-${col}`);
-      const colors = DIFFICULTIES[state.difficulty].colors;
+      // Get colors based on level (will be replaced by level generation)
+      const colors = state.level <= 20 ? 3 : state.level <= 50 ? 4 : 5;
       
       // Save current state to undo history before making the move
       const newUndoHistory = [...state.undoHistory, {
@@ -270,8 +263,8 @@ function reducer(state: GameState, action: Action): GameState {
             newMoves,
             state.optimalPath.length,
             state.time,
-            DIFFICULTIES[state.difficulty].timeLimit,
-            getDifficultyBonus(state.difficulty)
+            0, // Time limit will be determined by level
+            1 + (state.level / 10) // Level-based bonus
           )
         : state.score;
 
@@ -323,7 +316,8 @@ function reducer(state: GameState, action: Action): GameState {
     case 'TICK': {
       if (state.paused || state.won) return state;
       const newTime = state.time + 1;
-      const timeLimit = DIFFICULTIES[state.difficulty].timeLimit;
+      // Time limit will be determined by level progression
+      const timeLimit = 0; // No time limits for now
       
       // Check time limit
       if (timeLimit > 0 && newTime >= timeLimit) {

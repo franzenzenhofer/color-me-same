@@ -1,15 +1,15 @@
 import React from 'react';
-import { COLOR_PALETTE, DIFFICULTIES } from '../../constants/gameConfig';
+import { COLOR_PALETTE } from '../../constants/gameConfig';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 
 const ColorCycleInfo: React.FC = () => {
   const { state } = useGame();
-  const { difficulty, started } = state;
+  const { level, started } = state;
   
-  // Get the actual color count for current difficulty
-  const colorCount = started ? DIFFICULTIES[difficulty].colors : 3;
+  // Get the color count based on level
+  const colorCount = started ? (level <= 20 ? 3 : level <= 50 ? 4 : 5) : 3;
   const colors = COLOR_PALETTE.slice(0, colorCount);
   
   return (

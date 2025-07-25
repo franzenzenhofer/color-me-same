@@ -1,16 +1,15 @@
 import React, { useCallback } from 'react';
-import { Timer, Target, Trophy, Settings } from 'lucide-react';
+import { Timer, Target, Trophy, Hash } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
-import { DIFFICULTIES } from '../../constants/gameConfig';
 import { useTimer } from '../../hooks/useTimer';
 import { motion } from 'framer-motion';
 
 const Dashboard: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { started, time, moves, score, difficulty, won, level } = state;
+  const { started, time, moves, score, won, level } = state;
 
-  // Global timer - removed pause support
-  const timeLimit = DIFFICULTIES[difficulty].timeLimit;
+  // Global timer
+  const timeLimit = 0; // No time limits in new progression system
   useTimer(started && !won && !!timeLimit, useCallback(() => {
     dispatch({ type: 'TICK' });
   }, [dispatch]));
@@ -37,7 +36,7 @@ const Dashboard: React.FC = () => {
           icon={<Target size={18} />}
           label={`L${level}`}
           value={moves}
-          subValue={DIFFICULTIES[difficulty].maxMoves || '∞'}
+          subValue={level} // Shows required moves for the level
         />
         <Stat
           icon={<Timer size={18} />}
@@ -49,8 +48,8 @@ const Dashboard: React.FC = () => {
           value={score}
         />
         <Stat
-          icon={<Settings size={18} />}
-          value={difficulty.toUpperCase()}
+          icon={<Hash size={18} />}
+          value={`Level ${level}`}
         />
       </div>
     </motion.div>

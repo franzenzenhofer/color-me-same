@@ -54,87 +54,61 @@ describe('StartScreen', () => {
     });
   });
 
-  it('renders the start screen with all difficulty options', () => {
+  it('renders the start screen with new game button', () => {
     render(<StartScreen />);
     
     expect(screen.getByText('Color Me Same')).toBeInTheDocument();
-    expect(screen.getByText('easy')).toBeInTheDocument();
-    expect(screen.getByText('medium')).toBeInTheDocument();
-    expect(screen.getByText('hard')).toBeInTheDocument();
+    expect(screen.getByText('New Game')).toBeInTheDocument();
+    expect(screen.getByText('Starting at Level 1 • 3×3 Grid • 1 Move')).toBeInTheDocument();
   });
 
-  it('starts easy mode at level 1', async () => {
+  it('starts new game at level 1', async () => {
     render(<StartScreen />);
     
-    // Easy is selected by default
-    const startButton = screen.getByText('Start Game');
+    const startButton = screen.getByText('New Game');
     fireEvent.click(startButton);
     
     await waitFor(() => {
-      // Should generate with level 1 for easy
+      // Should generate with level 1
       expect(mockGenerate).toHaveBeenCalledWith(
-        expect.objectContaining({ size: 3 }), // easy config
+        expect.any(Object), // dummy config
         1 // level 1
       );
     });
   });
 
-  it('starts medium mode at level 11', async () => {
+  it('dispatches NEW_GAME action with level 1', async () => {
     render(<StartScreen />);
     
-    // Select medium difficulty
-    const mediumButton = screen.getByText('medium');
-    fireEvent.click(mediumButton);
-    
-    const startButton = screen.getByText('Start Game');
-    fireEvent.click(startButton);
-    
-    await waitFor(() => {
-      // Should generate with level 11 for medium
-      expect(mockGenerate).toHaveBeenCalledWith(
-        expect.objectContaining({ size: 6 }), // medium config
-        11 // level 11
-      );
-    });
-  });
-
-  it('starts hard mode at level 21', async () => {
-    render(<StartScreen />);
-    
-    // Select hard difficulty
-    const hardButton = screen.getByText('hard');
-    fireEvent.click(hardButton);
-    
-    const startButton = screen.getByText('Start Game');
-    fireEvent.click(startButton);
-    
-    await waitFor(() => {
-      // Should generate with level 21 for hard
-      expect(mockGenerate).toHaveBeenCalledWith(
-        expect.objectContaining({ size: 10 }), // hard config
-        21 // level 21
-      );
-    });
-  });
-
-  it('dispatches NEW_GAME action with correct level', async () => {
-    render(<StartScreen />);
-    
-    // Select medium
-    const mediumButton = screen.getByText('medium');
-    fireEvent.click(mediumButton);
-    
-    const startButton = screen.getByText('Start Game');
+    const startButton = screen.getByText('New Game');
     fireEvent.click(startButton);
     
     await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'NEW_GAME',
         payload: expect.objectContaining({
-          difficulty: 'medium',
-          level: 11 // Should be level 11 for medium
+          level: 1,
+          grid: [[0, 1], [1, 0]],
+          solved: [[0, 0], [0, 0]]
         })
       });
+    });
+  });
+
+  it('shows loading state while generating', async () => {
+    // Make generate take longer
+    mockGenerate.mockImplementationOnce(() => new Promise(resolve => setTimeout(resolve, 100)));
+    
+    render(<StartScreen />);
+    
+    const startButton = screen.getByText('New Game');
+    fireEvent.click(startButton);
+    
+    // Should show loading
+    expect(screen.getByText('Generating...')).toBeInTheDocument();
+    
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalled();
     });
   });
 });
