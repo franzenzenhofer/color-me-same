@@ -163,8 +163,9 @@ export function applyPenalties(totalPoints: number, undoUsed: boolean): number {
 export function calculateLevelScore(config: ScoringConfig): LevelScore {
   const { level, moves, optimalMoves, time, hintsUsed, undoUsed, powerTilesUsedOptimally } = config;
   
-  // Special case: Hints used = 0 points total
-  if (hintsUsed) {
+  // Special case: Hints used = 0 points total (except for tutorial levels)
+  // Tutorial levels (1-3) always have hints enabled, so we allow points
+  if (hintsUsed && level > 3) {
     log('debug', 'Hints used - zero points awarded', { level });
     return {
       basePoints: 0,
