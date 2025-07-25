@@ -98,10 +98,8 @@ const GameBoard: React.FC = () => {
   // Show hint toast on first hint activation after tutorials
   useEffect(() => {
     if (showHints && !hintToastShown && hintMove && !won && level > 3) {
-      const message = isOnOptimalPath 
-        ? "Click the highlighted tile to follow the optimal path"
-        : "Click the highlighted tile to try a different approach";
-      showToast(message, 'hint', 5000);
+      const message = isOnOptimalPath ? "Optimal" : "Hint";
+      showToast(message, 'hint', 2000);
       setHintToastShown(true);
     }
   }, [showHints, hintToastShown, hintMove, isOnOptimalPath, showToast, won, level]);

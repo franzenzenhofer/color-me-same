@@ -78,36 +78,12 @@ export const useMilestones = () => {
       setTimeout(() => {
         const celebration = milestoneManager.getCelebrationData(milestone);
         
-        // Show special celebration toast
+        // Show minimal celebration toast
         showToast(
-          `${celebration.icon} ${celebration.title}: ${celebration.subtitle}`,
+          `${celebration.icon} ${celebration.title}`,
           'success',
-          celebration.duration
+          2000
         );
-        
-        // Add reward info if present
-        if (milestone.reward) {
-          const rewards: string[] = [];
-          if (milestone.reward.points) {
-            rewards.push(`+${milestone.reward.points} points`);
-          }
-          if (milestone.reward.belt) {
-            rewards.push(`New belt: ${milestone.reward.belt}`);
-          }
-          if (milestone.reward.title) {
-            rewards.push(`Title: ${milestone.reward.title}`);
-          }
-          
-          if (rewards.length > 0) {
-            setTimeout(() => {
-              showToast(
-                `Rewards: ${rewards.join(', ')}`,
-                'info',
-                4000
-              );
-            }, 1500);
-          }
-        }
         
         log('info', 'Milestone celebration shown', {
           milestone: milestone.id,

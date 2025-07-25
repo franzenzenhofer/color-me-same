@@ -21,44 +21,26 @@ export const useTutorialToasts = () => {
     }
   }, [shownMessages, showToast]);
   
-  // Level 1: Welcome and center tile hint
+  // Show ONE tutorial message only at start of tutorials
   useEffect(() => {
     if (level === 1 && started && playerMoves.length === 0 && !won) {
       setTimeout(() => {
-        showTutorialMessage('level1-start', 'Tap center', 3000);
-      }, 1000);
+        showTutorialMessage('tutorial-info', 'Tutorials 1-3', 2000);
+      }, 500);
     }
   }, [level, started, playerMoves.length, won, showTutorialMessage]);
   
-  // Level 2: Explain cross pattern
-  useEffect(() => {
-    if (level === 2 && started && playerMoves.length === 0 && !won) {
-      setTimeout(() => {
-        showTutorialMessage('level2-start', 'Tap = + pattern', 3000);
-      }, 1000);
-    }
-  }, [level, started, playerMoves.length, won, showTutorialMessage]);
-  
-  // Level 3: Explain color cycling
-  useEffect(() => {
-    if (level === 3 && started && playerMoves.length === 0 && !won) {
-      setTimeout(() => {
-        showTutorialMessage('level3-start', 'Colors cycle 0→1→2→0', 3000);
-      }, 1000);
-    }
-  }, [level, started, playerMoves.length, won, showTutorialMessage]);
-  
-  // Success messages
+  // Minimal success messages
   useEffect(() => {
     if (won && level <= 3) {
       setTimeout(() => {
         const messages = {
-          1: 'Nice!',
-          2: 'Great!',
-          3: 'Perfect!'
+          1: '✓',
+          2: '✓✓', 
+          3: '✓✓✓'
         };
-        showTutorialMessage(`level${level}-win`, messages[level as 1 | 2 | 3], 2000);
-      }, 500);
+        showTutorialMessage(`level${level}-win`, messages[level as 1 | 2 | 3], 1000);
+      }, 300);
     }
   }, [won, level, showTutorialMessage]);
   

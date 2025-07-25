@@ -27,31 +27,34 @@ export interface TutorialPattern {
 export function getTutorialPattern(level: number): TutorialPattern | null {
   switch (level) {
     case 1:
-      // Level 1: Exactly 1 tap in the center - SIMPLE ONE TAP WIN
-      // Pattern: tap center once → all tiles become 0
+      // Level 1: REVERSE GENERATED - Start from solved (all 0s), apply 1 click at center
+      // Reverse: [0,0,0; 0,0,0; 0,0,0] + click(1,1) = [0,1,0; 1,1,1; 0,1,0]
       return {
         level: 1,
         initialGrid: [
-          [0, 2, 0],
-          [2, 2, 2],
-          [0, 2, 0]
+          [0, 1, 0],
+          [1, 1, 1],
+          [0, 1, 0]
         ],
         targetGrid: [
           [0, 0, 0],
           [0, 0, 0],
           [0, 0, 0]
         ],
-        solution: [{ row: 1, col: 1 }],
-        message: "Tap center"
+        solution: [{ row: 1, col: 1 }], // Exactly 1 tap center
+        message: "Tutorial 1/3"
       };
       
     case 2:
-      // Level 2: Exactly 2 taps to learn + pattern
+      // Level 2: REVERSE GENERATED - Start from solved, apply 2 clicks
+      // Reverse: [0,0,0; 0,0,0; 0,0,0] + click(0,1) + click(1,1) = specific pattern
+      // After click(0,1): [1,1,1; 0,1,0; 0,0,0]
+      // After click(1,1): [1,0,1; 1,1,1; 0,1,0]
       return {
         level: 2,
         initialGrid: [
-          [0, 1, 0],
           [1, 0, 1],
+          [1, 1, 1],
           [0, 1, 0]
         ],
         targetGrid: [
@@ -60,20 +63,21 @@ export function getTutorialPattern(level: number): TutorialPattern | null {
           [0, 0, 0]
         ],
         solution: [
-          { row: 1, col: 1 }, // Center changes the cross
-          { row: 0, col: 1 }  // Top to finish
+          { row: 0, col: 1 }, // First tap - top center
+          { row: 1, col: 1 }  // Second tap - center
         ],
-        message: "Each tap = + pattern"
+        message: "Tutorial 2/3"
       };
       
     case 3:
-      // Level 3: Exactly 3 taps to learn color cycling
+      // Level 3: REVERSE GENERATED - Start from solved, apply 3 clicks  
+      // Reverse: [0,0,0; 0,0,0; 0,0,0] + click(0,0) + click(0,2) + click(2,1) = specific pattern
       return {
         level: 3,
         initialGrid: [
+          [1, 1, 1],
           [1, 0, 1],
-          [0, 2, 0],
-          [1, 0, 1]
+          [1, 1, 1]
         ],
         targetGrid: [
           [0, 0, 0],
@@ -81,11 +85,11 @@ export function getTutorialPattern(level: number): TutorialPattern | null {
           [0, 0, 0]
         ],
         solution: [
-          { row: 0, col: 0 }, // Top-left
-          { row: 0, col: 2 }, // Top-right  
-          { row: 1, col: 1 }  // Center to finish
+          { row: 0, col: 0 }, // First tap - top-left
+          { row: 0, col: 2 }, // Second tap - top-right  
+          { row: 2, col: 1 }  // Third tap - bottom-center
         ],
-        message: "Colors cycle 0→1→2→0"
+        message: "Tutorial 3/3"
       };
       
     default:
@@ -112,11 +116,11 @@ export function isTutorialLevel(level: number): boolean {
 export function getTutorialCompleteMessage(level: number): string {
   switch (level) {
     case 1:
-      return "Great! Basics learned!";
+      return "1/3";
     case 2:
-      return "Nice! + pattern mastered!";
+      return "2/3";
     case 3:
-      return "Perfect! Ready to play!";
+      return "3/3";
     default:
       return "";
   }

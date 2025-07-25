@@ -12,7 +12,7 @@ export const useConstraintTutorials = () => {
   const { level, started } = state;
   
   const showConstraintTutorial = useCallback((message: string) => {
-    showToast(message, 'tutorial', 6000);
+    showToast(message, 'tutorial', 2000);
   }, [showToast]);
   
   useEffect(() => {

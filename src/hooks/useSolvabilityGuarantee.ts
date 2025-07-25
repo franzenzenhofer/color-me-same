@@ -31,7 +31,7 @@ export const useSolvabilityGuarantee = () => {
       });
       
       // This should never happen with reverse-move generation
-      showToast('⚠️ Puzzle verification failed. Regenerating...', 'error', 5000);
+      showToast('⚠️ Regenerating', 'error', 2000);
       
       // Trigger regeneration
       return false;
@@ -73,9 +73,9 @@ export const useSolvabilityGuarantee = () => {
         // Only show warning if high confidence
         if (checkResult.confidence > 0.8) {
           showToast(
-            '⚠️ Puzzle may have become unsolvable. Consider using undo.',
+            '⚠️ Try undo',
             'error',
-            6000
+            2000
           );
         }
       }
