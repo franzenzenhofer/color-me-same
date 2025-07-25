@@ -27,6 +27,7 @@ import { getLevelConfig } from '../../utils/levelConfig';
 import { useToast } from '../../context/ToastContext';
 import { useTutorialToasts } from '../../hooks/useTutorialToasts';
 import { useConstraintTutorials } from '../../hooks/useConstraintTutorials';
+import { useSolvabilityGuarantee } from '../../hooks/useSolvabilityGuarantee';
 
 /**
  * GameBoard Component - Renders the interactive puzzle grid
@@ -75,6 +76,9 @@ const GameBoard: React.FC = () => {
   
   // Constraint tutorial messages
   useConstraintTutorials();
+  
+  // Solvability guarantee system
+  const { getRecoveryOptions } = useSolvabilityGuarantee();
   
   // Show victory modal after delay when puzzle is solved
   useEffect(() => {
@@ -180,7 +184,7 @@ const GameBoard: React.FC = () => {
         )}
       </div>
       
-      {/* Unsolvable warning */}
+      {/* Unsolvable warning with recovery options */}
       {!isSolvable && !isChecking && !won && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -193,6 +197,17 @@ const GameBoard: React.FC = () => {
           <p className="text-center text-sm mt-1">
             This shouldn&apos;t happen with our generation method.
           </p>
+          <div className="flex justify-center gap-2 mt-2">
+            {getRecoveryOptions().slice(0, 2).map((option, i) => (
+              <button
+                key={i}
+                onClick={() => option.execute()}
+                className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 text-sm"
+              >
+                {option.type === 'revert' ? 'Undo' : 'New Puzzle'}
+              </button>
+            ))}
+          </div>
         </motion.div>
       )}
       
