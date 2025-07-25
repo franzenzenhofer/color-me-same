@@ -198,28 +198,30 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
             </>
           )}
           
-          <div className="flex gap-2 justify-center">
+          <div className="flex flex-col gap-2">
             {won && (
               <button
                 onClick={handleContinue}
-                className="btn-primary flex-1 flex items-center justify-center gap-2"
+                className="btn-primary w-full flex items-center justify-center gap-2"
               >
                 Continue
                 <ArrowRight size={16} />
               </button>
             )}
-            <button
-              onClick={handleNewGame}
-              className={`btn-secondary flex-1 ${!won ? 'btn-primary' : ''}`}
-            >
-              New Game
-            </button>
-            <button
-              onClick={() => dispatch({ type: 'SHOW_MODAL', modal: null })}
-              className="btn-secondary"
-            >
-              Close
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleNewGame}
+                className={`btn-secondary flex-1 ${!won ? 'btn-primary' : ''}`}
+              >
+                New Game
+              </button>
+              <button
+                onClick={() => dispatch({ type: 'SHOW_MODAL', modal: null })}
+                className="btn-secondary flex-1"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </motion.div>
       </motion.div>
