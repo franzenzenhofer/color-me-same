@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Clock, Target, Star, ArrowRight } from 'lucide-react';
 import { useGenerator } from '../../hooks/useGenerator';
 import { DIFFICULTIES } from '../../constants/gameConfig';
+import { getLevelMilestoneDescription } from '../../utils/levelConfig';
 
 interface VictoryModalProps {
   onShowAchievements?: (achievements: string[]) => void;
@@ -107,6 +108,27 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
               <p className="text-sm text-gray-600 mb-2">
                 Efficiency: {efficiency}%
               </p>
+              
+              {/* Show milestone message for next level */}
+              {(() => {
+                const nextLevel = level + 1;
+                const milestone = getLevelMilestoneDescription(nextLevel);
+                if (milestone) {
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2"
+                    >
+                      <p className="text-sm text-blue-800 font-medium">
+                        Next Level: {milestone}
+                      </p>
+                    </motion.div>
+                  );
+                }
+                return null;
+              })()}
             </>
           ) : (
             <>

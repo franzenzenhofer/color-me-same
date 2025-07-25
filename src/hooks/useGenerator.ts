@@ -18,6 +18,7 @@ import { useCallback } from 'react';
 import { Difficulty } from '../constants/gameConfig';
 import { log } from '../utils/logger';
 import { applyReverseClick } from '../utils/gridV2';
+import { getLevelConfig, LevelConfig } from '../utils/levelConfig';
 
 /**
  * Result of puzzle generation containing all game state data
@@ -44,99 +45,152 @@ export interface GenerationResult {
 }
 
 /**
- * LEVEL PROGRESSION SYSTEM
+ * Generate level-appropriate grid with exact move requirements
  * 
- * Levels 1-10: EASY MODE
- * - 3x3 grid throughout
- * - Starts with 2 moves from solved state
- * - Gradually increases difficulty
- * - No time limits, unlimited undos
+ * This function generates puzzles that require EXACTLY the specified
+ * number of moves to solve. It uses intelligent move selection to
+ * ensure the puzzle can't be solved in fewer moves.
  * 
- * Levels 11-20: MEDIUM MODE  
- * - 6x6 grid
- * - Starts with 4 moves from solved state (harder!)
- * - Time limits apply
- * - 5 undos per puzzle
- * 
- * Levels 21+: HARD MODE
- * - 10x10 grid initially
- * - Starts with 5 moves from solved state (even harder!)
- * - Strict time limits
- * - 1 undo per puzzle
- * 
- * Grid size increases every 10 levels after level 20:
- * - Levels 21-30: 10x10
- * - Levels 31-40: 12x12
- * - Levels 41-50: 14x14
- * - Levels 51-60: 16x16
- * - Levels 61-70: 18x18
- * - Levels 71+: 20x20
+ * @param config - Level configuration
+ * @returns Generated puzzle with exact move requirement
  */
-function getProgressiveSize(level: number): number {
-  if (level <= 10) {
-    // Easy: Always 3x3
-    return 3;
-  } else if (level <= 20) {
-    // Medium: Always 6x6
-    return 6;
-  } else {
-    // Hard: Start at 10x10, increase every 10 levels
-    const hardLevel = level - 20;
-    const sizeProgression = Math.floor(hardLevel / 10);
-    return Math.min(20, 10 + sizeProgression * 2);
-  }
-}
-
-/**
- * Calculate the number of reverse moves based on level
- * This determines puzzle difficulty within each tier
- */
-function getTargetMoves(level: number): number {
-  if (level <= 10) {
-    // Easy: 2-8 moves
-    return Math.min(8, 2 + Math.floor((level - 1) * 0.7));
-  } else if (level <= 20) {
-    // Medium: 4-14 moves (starts harder)
-    const mediumLevel = level - 10;
-    return Math.min(14, 4 + Math.floor((mediumLevel - 1) * 1.1));
-  } else {
-    // Hard: 5+ moves, increases more aggressively (even harder start)
-    const hardLevel = level - 20;
-    return Math.min(30, 5 + Math.floor(hardLevel * 1.2));
-  }
-}
-
-/**
- * Get difficulty settings based on level
- */
-function getDifficultyFromLevel(level: number): { 
-  difficulty: 'easy' | 'medium' | 'hard';
-  colors: number;
-  timeLimit: number;
-  maxUndos: number;
-} {
-  if (level <= 10) {
+async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationResult> {
+  const { gridSize, colors, requiredMoves, powerTiles: powerCount, lockedTiles: lockedCount } = config;
+  const maxAttempts = 50; // Prevent infinite loops
+  
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Start with solved state (all zeros)
+    const solved = Array(gridSize).fill(null).map(() => Array(gridSize).fill(0));
+    
+    // Place power tiles
+    const power = new Set<string>();
+    if (powerCount > 0) {
+      const positions = [];
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          positions.push(`${r}-${c}`);
+        }
+      }
+      
+      // Shuffle and take first N positions
+      for (let i = positions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [positions[i], positions[j]] = [positions[j], positions[i]];
+      }
+      
+      for (let i = 0; i < powerCount && i < positions.length; i++) {
+        power.add(positions[i]);
+      }
+    }
+    
+    // Generate puzzle by applying exact number of moves
+    let currentGrid = solved.map(row => [...row]);
+    const generationHistory: { row: number; col: number }[] = [];
+    const usedPositions = new Set<string>();
+    
+    // Smart move selection to ensure exact move count
+    for (let moveNum = 0; moveNum < requiredMoves; moveNum++) {
+      let bestMove: { row: number; col: number } | null = null;
+      
+      // Try to find a move that creates maximum change
+      const candidates = [];
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          candidates.push({ row: r, col: c });
+        }
+      }
+      
+      // Shuffle candidates for variety
+      for (let i = candidates.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+      }
+      
+      // For early moves, prefer positions that haven't been used
+      // For later moves, allow reuse to create complexity
+      const reuseThreshold = Math.floor(requiredMoves * 0.6);
+      const preferUnused = moveNum < reuseThreshold;
+      
+      if (preferUnused) {
+        // Sort candidates to prioritize unused positions
+        candidates.sort((a, b) => {
+          const aUsed = usedPositions.has(`${a.row}-${a.col}`);
+          const bUsed = usedPositions.has(`${b.row}-${b.col}`);
+          if (aUsed && !bUsed) return 1;
+          if (!aUsed && bUsed) return -1;
+          return 0;
+        });
+      }
+      
+      // Select move from top candidates
+      const topCandidates = candidates.slice(0, Math.max(3, gridSize));
+      const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+      
+      bestMove = selected;
+      usedPositions.add(`${selected.row}-${selected.col}`);
+      
+      // Apply reverse click
+      const isPower = power.has(`${bestMove.row}-${bestMove.col}`);
+      currentGrid = applyReverseClick(currentGrid, bestMove.row, bestMove.col, colors, isPower, new Map());
+      generationHistory.push(bestMove);
+    }
+    
+    // The optimal solution is the reverse of generation
+    const optimalPath = [...generationHistory].reverse();
+    
+    // Place locked tiles (after generation to not interfere with optimal path)
+    const locked = new Map<string, number>();
+    if (lockedCount > 0 && config.level > 70) {
+      const optimalPathSet = new Set(optimalPath.map(m => `${m.row}-${m.col}`));
+      const candidates = [];
+      
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          const key = `${r}-${c}`;
+          if (!optimalPathSet.has(key) && !power.has(key)) {
+            candidates.push(key);
+          }
+        }
+      }
+      
+      // Shuffle and place locked tiles
+      for (let i = candidates.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+      }
+      
+      for (let i = 0; i < lockedCount && i < candidates.length; i++) {
+        const lockMoves = 2 + Math.floor(Math.random() * 3); // 2-4 moves to unlock
+        locked.set(candidates[i], lockMoves);
+      }
+    }
+    
+    // Success - we generated a puzzle with exact move count
+    log('info', '✅ Generated exact-move puzzle', {
+      level: config.level,
+      requiredMoves: config.requiredMoves,
+      actualMoves: generationHistory.length,
+      powerTiles: power.size,
+      lockedTiles: locked.size,
+      gridSize: config.gridSize,
+      colors: config.colors,
+      attempt: attempt + 1
+    });
+    
     return {
-      difficulty: 'easy',
-      colors: 3,
-      timeLimit: 0, // No time limit
-      maxUndos: -1 // Unlimited
-    };
-  } else if (level <= 20) {
-    return {
-      difficulty: 'medium',
-      colors: 4,
-      timeLimit: 300, // 5 minutes
-      maxUndos: 5
-    };
-  } else {
-    return {
-      difficulty: 'hard', 
-      colors: 4 + Math.floor((level - 21) / 20), // Increase colors every 20 levels
-      timeLimit: 180, // 3 minutes
-      maxUndos: 1
+      grid: currentGrid,
+      solved,
+      power,
+      locked,
+      solution: optimalPath,
+      reverse: generationHistory,
+      optimalPath,
+      playerMoves: []
     };
   }
+  
+  // Fallback if we couldn't generate exact moves (should rarely happen)
+  throw new Error(`Failed to generate level ${config.level} after ${maxAttempts} attempts`);
 }
 
 /**
@@ -175,114 +229,11 @@ export const useGenerator = () => {
    * const puzzle = await generate(DIFFICULTIES.easy, 15); // Level 15 = Medium 6x6
    */
   const generate = useCallback(async (_conf: Difficulty, level: number = 1): Promise<GenerationResult> => {
-    // Get size and difficulty based on level
-    const size = getProgressiveSize(level);
-    const targetMoves = getTargetMoves(level);
-    const { colors } = getDifficultyFromLevel(level);
+    // Get configuration for this level
+    const config = getLevelConfig(level);
     
-    // Start with solved state (all zeros)
-    const solved = Array(size).fill(null).map(() => Array(size).fill(0));
-    
-    // POWER TILES STASHED - Keep logic for future use
-    // Power tiles affect 3x3 area instead of + pattern
-    const power = new Set<string>();
-    /* STASHED POWER TILE LOGIC - Uncomment to re-enable
-    if (conf.powerTileChance > 0) {
-      const numPowerTiles = Math.min(3, Math.floor(size * size * conf.powerTileChance));
-      const allPositions: string[] = [];
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          allPositions.push(`${r}-${c}`);
-        }
-      }
-      
-      // Randomly select power tile positions
-      for (let i = 0; i < numPowerTiles && allPositions.length > 0; i++) {
-        const idx = Math.floor(Math.random() * allPositions.length);
-        power.add(allPositions.splice(idx, 1)[0]);
-      }
-    }
-    */
-    
-    // Generate puzzle by applying random moves to solved state
-    let currentGrid = solved.map(row => [...row]);
-    const generationHistory: { row: number; col: number }[] = [];
-    
-    // No locked tiles during generation to ensure all moves are valid
-    const emptyLocked = new Map<string, number>();
-    
-    // Apply REVERSE clicks to scramble the board
-    // This ensures that applying normal clicks in reverse order will solve it
-    for (let i = 0; i < targetMoves; i++) {
-      const row = Math.floor(Math.random() * size);
-      const col = Math.floor(Math.random() * size);
-      const isPower = power.has(`${row}-${col}`);
-      
-      // Apply REVERSE click (subtract instead of add)
-      currentGrid = applyReverseClick(currentGrid, row, col, colors, isPower, emptyLocked);
-      generationHistory.push({ row, col });
-    }
-    
-    // The optimal solution is EXACTLY the reverse of generation history
-    // This guarantees solvability - we scrambled from solved state, so reversing unscrambles
-    const optimalPath = [...generationHistory].reverse();
-    
-    // LOCKED TILES STASHED - Keep logic for future use
-    // Locked tiles require multiple clicks before they can be clicked
-    const locked = new Map<string, number>();
-    /* STASHED LOCKED TILE LOGIC - Uncomment to re-enable
-    if (conf.maxLockedTiles > 0 && level > 1) {
-      const optimalPathSet = new Set(optimalPath.map(m => `${m.row}-${m.col}`));
-      const candidates: string[] = [];
-      
-      // Find positions not in optimal path and not power tiles
-      for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-          const key = `${r}-${c}`;
-          if (!optimalPathSet.has(key) && !power.has(key)) {
-            candidates.push(key);
-          }
-        }
-      }
-      
-      // Place locked tiles
-      const scaledMaxLocked = Math.min(
-        conf.maxLockedTiles,
-        Math.floor(conf.maxLockedTiles + (level - 1) / 3),
-        candidates.length
-      );
-      
-      for (let i = 0; i < scaledMaxLocked && candidates.length > 0; i++) {
-        const idx = Math.floor(Math.random() * candidates.length);
-        const key = candidates.splice(idx, 1)[0];
-        const lockMoves = 2 + Math.floor(Math.random() * 3); // 2-4 moves
-        locked.set(key, lockMoves);
-      }
-    }
-    */
-    
-    log('info', '✅ Generated 100% solvable puzzle using reverse-move method', {
-      level,
-      targetMoves,
-      actualMoves: generationHistory.length,
-      powerTiles: power.size,
-      lockedTiles: locked.size,
-      optimalPathLength: optimalPath.length,
-      gridSize: size,
-      difficulty: getDifficultyFromLevel(level).difficulty,
-      colors
-    });
-    
-    return {
-      grid: currentGrid,
-      solved,
-      power,
-      locked,
-      solution: optimalPath, // Guaranteed optimal solution
-      reverse: generationHistory, // Moves used to generate
-      optimalPath, // Exact path to solve
-      playerMoves: [] // Start with no player moves
-    };
+    // Generate puzzle with exact move requirements
+    return generateExactMovePuzzle(config);
   }, []);
 
   return { generate };

@@ -23,6 +23,7 @@ import { computeScore } from '../utils/score';
 import { isWinningState } from '../utils/grid';
 import { applyClick } from '../utils/gridV2';
 import { log } from '../utils/logger';
+import { getLevelConfig } from '../utils/levelConfig';
 
 /**
  * Complete game state interface
@@ -237,8 +238,8 @@ function reducer(state: GameState, action: Action): GameState {
       if (state.locked.has(`${row}-${col}`) && state.locked.get(`${row}-${col}`)! > 0) return state;
 
       const isPower = state.power.has(`${row}-${col}`);
-      // Get colors based on level (will be replaced by level generation)
-      const colors = state.level <= 20 ? 3 : state.level <= 50 ? 4 : 5;
+      // Get colors from level configuration
+      const { colors } = getLevelConfig(state.level);
       
       // Save current state to undo history before making the move
       const newUndoHistory = [...state.undoHistory, {

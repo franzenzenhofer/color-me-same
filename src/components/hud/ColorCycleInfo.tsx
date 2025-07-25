@@ -3,13 +3,14 @@ import { COLOR_PALETTE } from '../../constants/gameConfig';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
+import { getLevelConfig } from '../../utils/levelConfig';
 
 const ColorCycleInfo: React.FC = () => {
   const { state } = useGame();
   const { level, started } = state;
   
-  // Get the color count based on level
-  const colorCount = started ? (level <= 20 ? 3 : level <= 50 ? 4 : 5) : 3;
+  // Get the color count from level configuration
+  const { colors: colorCount } = started ? getLevelConfig(level) : { colors: 3 };
   const colors = COLOR_PALETTE.slice(0, colorCount);
   
   return (

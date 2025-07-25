@@ -23,6 +23,7 @@ import Tile from './Tile';
 import { useDynamicHint } from '../../hooks/useDynamicHint';
 import { useSolvabilityCheck } from '../../hooks/useSolvabilityCheck';
 import { motion } from 'framer-motion';
+import { getLevelConfig } from '../../utils/levelConfig';
 
 /**
  * GameBoard Component - Renders the interactive puzzle grid
@@ -53,7 +54,7 @@ const GameBoard: React.FC = () => {
   );
   
   // Check solvability after each move
-  const colors = level <= 20 ? 3 : level <= 50 ? 4 : 5; // Will be replaced by level generation
+  const { colors } = getLevelConfig(level);
   const { isSolvable, isChecking } = useSolvabilityCheck(
     grid,
     colors,

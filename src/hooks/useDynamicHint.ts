@@ -3,6 +3,7 @@ import { bfsSolve } from './useSolver';
 import { isWinningState } from '../utils/grid';
 import { log } from '../utils/logger';
 import { isSolvable } from '../utils/solvability';
+import { getLevelConfig } from '../utils/levelConfig';
 
 interface HintResult {
   nextMove: { row: number; col: number } | null;
@@ -52,7 +53,7 @@ export const useDynamicHint = (
       } else {
         // Player has diverged - calculate new shortest path
         setIsOnOptimalPath(false);
-        const colors = level <= 20 ? 3 : level <= 50 ? 4 : 5; // Will be replaced by level generation
+        const { colors } = getLevelConfig(level);
         const { solution } = await bfsSolve(grid, power, locked, colors);
         
         if (solution.length > 0) {
