@@ -25,6 +25,7 @@ import { useSolvabilityCheck } from '../../hooks/useSolvabilityCheck';
 import { motion } from 'framer-motion';
 import { getLevelConfig } from '../../utils/levelConfig';
 import { useToast } from '../../context/ToastContext';
+import { useTutorialToasts } from '../../hooks/useTutorialToasts';
 
 /**
  * GameBoard Component - Renders the interactive puzzle grid
@@ -68,6 +69,9 @@ const GameBoard: React.FC = () => {
     started && !won // Only check during active gameplay
   );
   
+  // Tutorial toast messages
+  useTutorialToasts();
+  
   // Show victory modal after delay when puzzle is solved
   useEffect(() => {
     if (won && !state.showVictory) {
@@ -79,16 +83,16 @@ const GameBoard: React.FC = () => {
     }
   }, [won, state.showVictory, dispatch]);
   
-  // Show hint toast on first hint activation
+  // Show hint toast on first hint activation after tutorials
   useEffect(() => {
-    if (showHints && !hintToastShown && hintMove && !won) {
+    if (showHints && !hintToastShown && hintMove && !won && level > 3) {
       const message = isOnOptimalPath 
-        ? "💡 Hint: Click the highlighted tile (optimal path)"
-        : "💡 Hint: Click the highlighted tile (new path)";
-      showToast(message, 'info', 4000);
+        ? "Click the highlighted tile to follow the optimal path"
+        : "Click the highlighted tile to try a different approach";
+      showToast(message, 'hint', 5000);
       setHintToastShown(true);
     }
-  }, [showHints, hintToastShown, hintMove, isOnOptimalPath, showToast, won]);
+  }, [showHints, hintToastShown, hintMove, isOnOptimalPath, showToast, won, level]);
   
   // Reset hint toast state when starting a new game
   useEffect(() => {
