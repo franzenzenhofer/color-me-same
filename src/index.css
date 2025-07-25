@@ -96,4 +96,13 @@
   .text-gradient {
     @apply bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent;
   }
+  
+  /* Drop shadow glow effects */
+  .drop-shadow-glow {
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  
+  .drop-shadow-glow-orange {
+    filter: drop-shadow(0 0 12px rgb(251 146 60));
+  }
 }
