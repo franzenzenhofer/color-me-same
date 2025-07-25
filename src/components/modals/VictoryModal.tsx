@@ -6,7 +6,6 @@ import { useGenerator } from '../../hooks/useGenerator';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { getLevelMilestoneDescription } from '../../utils/levelConfig';
 import { calculateLevelScore, formatPoints } from '../../utils/scoring';
-import { getTutorialCompleteMessage, isTutorialLevel } from '../../utils/tutorialPatterns';
 
 interface VictoryModalProps {
   onShowAchievements?: (achievements: string[]) => void;
@@ -72,24 +71,11 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
         >
           {won ? (
             <>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1, rotate: 360 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-4xl mb-2"
-              >
-                🎉
-              </motion.div>
-              
-              <h2 className="text-2xl font-bold text-green-600 mb-2">
-                {isTutorialLevel(level) ? 'Tutorial Done!' : 'Level Complete!'}
+              <h2 className="text-lg font-bold text-green-600 mb-2 flex items-center justify-center gap-2">
+                <span className="text-2xl">🎉</span>
+                Level {level} Complete!
               </h2>
               
-              {isTutorialLevel(level) && (
-                <p className="text-gray-600 mb-2">
-                  {getTutorialCompleteMessage(level)}
-                </p>
-              )}
               
               <div className="flex justify-center gap-1 mb-2">
                 {[...Array(3)].map((_, i) => (
@@ -108,8 +94,8 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                 ))}
               </div>
               
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center justify-center gap-2">
+              <div className="space-y-1 mb-3">
+                <div className="flex items-center justify-center gap-2 text-sm">
                   <span>Moves: {moves}/{optimalPath.length}</span>
                 </div>
                 
@@ -175,7 +161,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                 )}
               </div>
               
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-gray-600 mb-3">
                 Efficiency: {efficiency}%
               </p>
               
@@ -212,7 +198,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
             </>
           )}
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center">
             {won && (
               <button
                 onClick={handleContinue}
