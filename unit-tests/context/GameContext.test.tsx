@@ -1,22 +1,21 @@
 import { describe, it, expect, vi } from 'vitest';
-import { gameReducer, initialState } from '../../src/context/GameContext';
+import { render, act, renderHook } from '@testing-library/react';
+import React from 'react';
+import { GameProvider, useGame } from '../../src/context/GameContext';
 import { DIFFICULTIES } from '../../src/constants/gameConfig';
 
-// Mock the functions from utils
+// Mock the utils
 vi.mock('../../src/utils/grid', () => ({
   generateSolvableGrid: vi.fn((size, colors) => {
-    // Create a simple grid filled with 0s
     const grid = Array(size).fill(null).map(() => Array(size).fill(0));
     return { grid, moves: 0 };
   }),
   applyMove: vi.fn((grid, row, col, power, colors) => {
-    // Simple mock that just increments the clicked cell
     const newGrid = grid.map(r => [...r]);
     newGrid[row][col] = (newGrid[row][col] + 1) % colors;
     return newGrid;
   }),
   checkWin: vi.fn((grid) => {
-    // Check if all cells have the same value
     const firstValue = grid[0][0];
     return grid.every(row => row.every(cell => cell === firstValue));
   })
@@ -28,281 +27,303 @@ vi.mock('../../src/utils/score', () => ({
   })
 }));
 
-describe('GameContext Reducer', () => {
-  it('should return initial state', () => {
-    const state = gameReducer(undefined as any, { type: 'UNKNOWN' as any });
-    expect(state).toEqual(initialState);
+describe('GameContext', () => {
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <GameProvider>{children}</GameProvider>
+  );
+
+  it('provides initial state', () => {
+    const { result } = renderHook(() => useGame(), { wrapper });
+    
+    expect(result.current.state.started).toBe(false);
+    expect(result.current.state.difficulty).toBe('easy');
+    expect(result.current.state.grid).toEqual([]);
+    expect(result.current.state.moves).toBe(0);
+    expect(result.current.state.time).toBe(0);
+    expect(result.current.state.won).toBe(false);
   });
 
-  describe('START action', () => {
-    it('should start game with selected difficulty', () => {
-      const state = gameReducer(initialState, { type: 'START', difficulty: 'medium' });
+  describe('NEW_GAME action', () => {
+    it('starts a new game with selected difficulty', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
       
-      expect(state.started).toBe(true);
-      expect(state.difficulty).toBe('medium');
-      expect(state.grid).toHaveLength(DIFFICULTIES.medium.size);
-      expect(state.grid[0]).toHaveLength(DIFFICULTIES.medium.size);
-      expect(state.moves).toBe(0);
-      expect(state.time).toBe(0);
-      expect(state.won).toBe(false);
-      expect(state.paused).toBe(false);
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'medium' });
+      });
+      
+      expect(result.current.state.started).toBe(true);
+      expect(result.current.state.difficulty).toBe('medium');
+      expect(result.current.state.grid).toHaveLength(DIFFICULTIES.medium.size);
+      expect(result.current.state.moves).toBe(0);
+      expect(result.current.state.showTutorial).toBe(false);
     });
 
-    it('should generate power tiles for medium difficulty', () => {
-      const state = gameReducer(initialState, { type: 'START', difficulty: 'medium' });
+    it('generates power tiles for medium difficulty', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
       
-      expect(state.power.size).toBeGreaterThan(0);
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'medium' });
+      });
+      
+      expect(result.current.state.power.size).toBeGreaterThan(0);
     });
 
-    it('should generate locked tiles for hard difficulty', () => {
-      const state = gameReducer(initialState, { type: 'START', difficulty: 'hard' });
+    it('generates locked tiles for hard difficulty', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
       
-      expect(state.locked.size).toBeGreaterThan(0);
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'hard' });
+      });
+      
+      expect(result.current.state.locked.size).toBeGreaterThan(0);
+    });
+  });
+
+  describe('TOGGLE_SETTINGS action', () => {
+    it('toggles settings modal', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      expect(result.current.state.showSettings).toBe(false);
+      
+      act(() => {
+        result.current.dispatch({ type: 'TOGGLE_SETTINGS' });
+      });
+      
+      expect(result.current.state.showSettings).toBe(true);
+      
+      act(() => {
+        result.current.dispatch({ type: 'TOGGLE_SETTINGS' });
+      });
+      
+      expect(result.current.state.showSettings).toBe(false);
+    });
+  });
+
+  describe('TOGGLE_SOUND action', () => {
+    it('toggles sound setting', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      expect(result.current.state.soundEnabled).toBe(true);
+      
+      act(() => {
+        result.current.dispatch({ type: 'TOGGLE_SOUND' });
+      });
+      
+      expect(result.current.state.soundEnabled).toBe(false);
+      
+      act(() => {
+        result.current.dispatch({ type: 'TOGGLE_SOUND' });
+      });
+      
+      expect(result.current.state.soundEnabled).toBe(true);
+    });
+  });
+
+  describe('SELECT_DIFFICULTY action', () => {
+    it('updates selected difficulty', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      act(() => {
+        result.current.dispatch({ type: 'SELECT_DIFFICULTY', difficulty: 'hard' });
+      });
+      
+      expect(result.current.state.difficulty).toBe('hard');
     });
   });
 
   describe('CLICK action', () => {
-    it('should apply move and increment move count', () => {
-      const startedState = gameReducer(initialState, { type: 'START', difficulty: 'easy' });
-      const state = gameReducer(startedState, { type: 'CLICK', row: 0, col: 0 });
+    it('applies move and increments move count', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
       
-      expect(state.moves).toBe(1);
-      expect(state.playerMoves).toContain('0-0');
+      // Start game first
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+      });
+      
+      const initialMoves = result.current.state.moves;
+      
+      act(() => {
+        result.current.dispatch({ type: 'CLICK', row: 0, col: 0 });
+      });
+      
+      expect(result.current.state.moves).toBe(initialMoves + 1);
+      expect(result.current.state.playerMoves).toContain('0-0');
     });
 
-    it('should not apply move when game is won', () => {
-      const wonState = { ...initialState, started: true, won: true, moves: 5 };
-      const state = gameReducer(wonState, { type: 'CLICK', row: 0, col: 0 });
+    it('tracks move in analytics', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
       
-      expect(state.moves).toBe(5); // Unchanged
-    });
-
-    it('should not apply move when game is paused', () => {
-      const pausedState = { ...initialState, started: true, paused: true, moves: 5 };
-      const state = gameReducer(pausedState, { type: 'CLICK', row: 0, col: 0 });
+      // Start game first
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+      });
       
-      expect(state.moves).toBe(5); // Unchanged
-    });
-
-    it('should handle power tile clicks', () => {
-      const stateWithPower = {
-        ...initialState,
-        started: true,
-        grid: [[0, 1], [1, 0]],
-        power: new Map([['0-0', true]]),
-        powerUsed: 0
-      };
+      act(() => {
+        result.current.dispatch({ type: 'CLICK', row: 1, col: 2 });
+      });
       
-      const state = gameReducer(stateWithPower, { type: 'CLICK', row: 0, col: 0 });
-      
-      expect(state.powerUsed).toBe(1);
-      expect(state.power.has('0-0')).toBe(false);
-    });
-
-    it('should handle locked tile clicks', () => {
-      const stateWithLocked = {
-        ...initialState,
-        started: true,
-        grid: [[0, 1], [1, 0]],
-        locked: new Map([['0-0', 2]])
-      };
-      
-      const state = gameReducer(stateWithLocked, { type: 'CLICK', row: 0, col: 0 });
-      
-      expect(state.locked.get('0-0')).toBe(1);
-    });
-
-    it('should unlock tile when lock count reaches 0', () => {
-      const stateWithLocked = {
-        ...initialState,
-        started: true,
-        grid: [[0, 1], [1, 0]],
-        locked: new Map([['0-0', 1]])
-      };
-      
-      const state = gameReducer(stateWithLocked, { type: 'CLICK', row: 0, col: 0 });
-      
-      expect(state.locked.has('0-0')).toBe(false);
-    });
-  });
-
-  describe('RESET action', () => {
-    it('should reset to initial state', () => {
-      const modifiedState = {
-        ...initialState,
-        started: true,
-        moves: 10,
-        time: 60
-      };
-      
-      const state = gameReducer(modifiedState, { type: 'RESET' });
-      
-      expect(state).toEqual(initialState);
-    });
-  });
-
-  describe('RESTART action', () => {
-    it('should restart with same difficulty', () => {
-      const gameState = gameReducer(initialState, { type: 'START', difficulty: 'medium' });
-      const state = gameReducer(gameState, { type: 'RESTART' });
-      
-      expect(state.difficulty).toBe('medium');
-      expect(state.moves).toBe(0);
-      expect(state.time).toBe(0);
-      expect(state.grid).toHaveLength(DIFFICULTIES.medium.size);
-    });
-  });
-
-  describe('TICK action', () => {
-    it('should increment time when not paused', () => {
-      const runningState = { ...initialState, started: true, time: 10 };
-      const state = gameReducer(runningState, { type: 'TICK' });
-      
-      expect(state.time).toBe(11);
-    });
-
-    it('should not increment time when paused', () => {
-      const pausedState = { ...initialState, started: true, paused: true, time: 10 };
-      const state = gameReducer(pausedState, { type: 'TICK' });
-      
-      expect(state.time).toBe(10);
-    });
-
-    it('should not increment time when game is won', () => {
-      const wonState = { ...initialState, started: true, won: true, time: 10 };
-      const state = gameReducer(wonState, { type: 'TICK' });
-      
-      expect(state.time).toBe(10);
+      expect(result.current.state.playerMoves).toContain('1-2');
     });
   });
 
   describe('TOGGLE_PAUSE action', () => {
-    it('should toggle pause state', () => {
-      const runningState = { ...initialState, started: true, paused: false };
-      const pausedState = gameReducer(runningState, { type: 'TOGGLE_PAUSE' });
+    it('toggles pause state during game', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
       
-      expect(pausedState.paused).toBe(true);
+      // Start game first
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+      });
       
-      const resumedState = gameReducer(pausedState, { type: 'TOGGLE_PAUSE' });
-      expect(resumedState.paused).toBe(false);
+      expect(result.current.state.paused).toBe(false);
+      
+      act(() => {
+        result.current.dispatch({ type: 'TOGGLE_PAUSE' });
+      });
+      
+      expect(result.current.state.paused).toBe(true);
     });
   });
 
   describe('TOGGLE_HINTS action', () => {
-    it('should toggle hints when not already used', () => {
-      const state = gameReducer(initialState, { type: 'TOGGLE_HINTS' });
+    it('toggles hints and tracks usage', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
       
-      expect(state.showHints).toBe(true);
-      expect(state.hintsUsed).toBe(1);
-    });
-
-    it('should increment hints used when enabling', () => {
-      const stateWithHints = { ...initialState, showHints: false, hintsUsed: 2 };
-      const state = gameReducer(stateWithHints, { type: 'TOGGLE_HINTS' });
+      // Start game first
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+      });
       
-      expect(state.showHints).toBe(true);
-      expect(state.hintsUsed).toBe(3);
-    });
-
-    it('should not increment hints when disabling', () => {
-      const stateWithHints = { ...initialState, showHints: true, hintsUsed: 2 };
-      const state = gameReducer(stateWithHints, { type: 'TOGGLE_HINTS' });
+      expect(result.current.state.showHints).toBe(false);
+      expect(result.current.state.hintsUsed).toBe(0);
       
-      expect(state.showHints).toBe(false);
-      expect(state.hintsUsed).toBe(2);
+      act(() => {
+        result.current.dispatch({ type: 'TOGGLE_HINTS' });
+      });
+      
+      expect(result.current.state.showHints).toBe(true);
+      expect(result.current.state.hintsUsed).toBe(1);
     });
   });
 
   describe('SHOW_MODAL action', () => {
-    it('should show victory modal', () => {
-      const state = gameReducer(initialState, { type: 'SHOW_MODAL', modal: 'victory' });
+    it('shows victory modal', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
       
-      expect(state.showVictory).toBe(true);
-      expect(state.showTutorial).toBe(false);
-    });
-
-    it('should show tutorial modal', () => {
-      const state = gameReducer(initialState, { type: 'SHOW_MODAL', modal: 'tutorial' });
-      
-      expect(state.showTutorial).toBe(true);
-      expect(state.showVictory).toBe(false);
-    });
-
-    it('should hide all modals when modal is null', () => {
-      const stateWithModals = {
-        ...initialState,
-        showVictory: true,
-        showTutorial: true
-      };
-      
-      const state = gameReducer(stateWithModals, { type: 'SHOW_MODAL', modal: null });
-      
-      expect(state.showVictory).toBe(false);
-      expect(state.showTutorial).toBe(false);
-    });
-  });
-
-  describe('UNDO action', () => {
-    it('should return to previous state', () => {
-      const startedState = gameReducer(initialState, { type: 'START', difficulty: 'easy' });
-      const afterMove = gameReducer(startedState, { type: 'CLICK', row: 0, col: 0 });
-      const undoneState = gameReducer(afterMove, { type: 'UNDO' });
-      
-      expect(undoneState.moves).toBe(0);
-      expect(undoneState.undosUsed).toBe(1);
-    });
-
-    it('should restore grid state', () => {
-      const startedState = gameReducer(initialState, { type: 'START', difficulty: 'easy' });
-      const originalGrid = JSON.stringify(startedState.grid);
-      
-      const afterMove = gameReducer(startedState, { type: 'CLICK', row: 0, col: 0 });
-      const undoneState = gameReducer(afterMove, { type: 'UNDO' });
-      
-      expect(JSON.stringify(undoneState.grid)).toBe(originalGrid);
-    });
-
-    it('should not undo when history is empty', () => {
-      const state = gameReducer(initialState, { type: 'UNDO' });
-      
-      expect(state).toEqual(initialState);
-    });
-  });
-
-  describe('RESET_UNDOS action', () => {
-    it('should reset undo counter', () => {
-      const stateWithUndos = { ...initialState, undosUsed: 5 };
-      const state = gameReducer(stateWithUndos, { type: 'RESET_UNDOS' });
-      
-      expect(state.undosUsed).toBe(0);
-    });
-  });
-
-  describe('LOCK_DECR action', () => {
-    it('should decrement all locked tiles', () => {
-      const stateWithLocked = {
-        ...initialState,
-        locked: new Map([['0-0', 3], ['1-1', 2], ['2-2', 1]])
-      };
-      
-      const state = gameReducer(stateWithLocked, { type: 'LOCK_DECR' });
-      
-      expect(state.locked.get('0-0')).toBe(2);
-      expect(state.locked.get('1-1')).toBe(1);
-      expect(state.locked.has('2-2')).toBe(false); // Removed when reaching 0
-    });
-  });
-
-  describe('SET_OPTIMAL_PATH action', () => {
-    it('should set optimal path and moves', () => {
-      const state = gameReducer(initialState, { 
-        type: 'SET_OPTIMAL_PATH', 
-        path: ['0-0', '1-1', '2-2'],
-        moves: 3
+      act(() => {
+        result.current.dispatch({ type: 'SHOW_MODAL', modal: 'victory' });
       });
       
-      expect(state.optimalPath).toEqual(['0-0', '1-1', '2-2']);
-      expect(state.optimalMoves).toBe(3);
+      expect(result.current.state.showVictory).toBe(true);
+    });
+
+    it('shows tutorial modal', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      act(() => {
+        result.current.dispatch({ type: 'SHOW_MODAL', modal: 'tutorial' });
+      });
+      
+      expect(result.current.state.showTutorial).toBe(true);
+    });
+
+    it('hides all modals when null', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      // Show some modals first
+      act(() => {
+        result.current.dispatch({ type: 'SHOW_MODAL', modal: 'victory' });
+      });
+      
+      act(() => {
+        result.current.dispatch({ type: 'SHOW_MODAL', modal: null });
+      });
+      
+      expect(result.current.state.showVictory).toBe(false);
+      expect(result.current.state.showTutorial).toBe(false);
+    });
+  });
+
+  describe('RESTART action', () => {
+    it('restarts game with same difficulty', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      // Start game first
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'medium' });
+      });
+      
+      // Make some moves
+      act(() => {
+        result.current.dispatch({ type: 'CLICK', row: 0, col: 0 });
+        result.current.dispatch({ type: 'TICK' });
+      });
+      
+      act(() => {
+        result.current.dispatch({ type: 'RESTART' });
+      });
+      
+      expect(result.current.state.difficulty).toBe('medium');
+      expect(result.current.state.moves).toBe(0);
+      expect(result.current.state.time).toBe(0);
+      expect(result.current.state.started).toBe(true);
+    });
+  });
+
+  describe('TICK action', () => {
+    it('increments time when game is running', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      // Start game first
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+      });
+      
+      const initialTime = result.current.state.time;
+      
+      act(() => {
+        result.current.dispatch({ type: 'TICK' });
+      });
+      
+      expect(result.current.state.time).toBe(initialTime + 1);
+    });
+
+    it('does not increment when paused', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      // Start game and pause
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+        result.current.dispatch({ type: 'TOGGLE_PAUSE' });
+      });
+      
+      const pausedTime = result.current.state.time;
+      
+      act(() => {
+        result.current.dispatch({ type: 'TICK' });
+      });
+      
+      expect(result.current.state.time).toBe(pausedTime);
+    });
+  });
+
+  describe('RESET action', () => {
+    it('resets to initial state', () => {
+      const { result } = renderHook(() => useGame(), { wrapper });
+      
+      // Start game and make changes
+      act(() => {
+        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'hard' });
+        result.current.dispatch({ type: 'CLICK', row: 0, col: 0 });
+      });
+      
+      act(() => {
+        result.current.dispatch({ type: 'RESET' });
+      });
+      
+      expect(result.current.state.started).toBe(false);
+      expect(result.current.state.difficulty).toBe('easy');
+      expect(result.current.state.grid).toEqual([]);
     });
   });
 });

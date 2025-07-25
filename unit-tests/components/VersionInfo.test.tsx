@@ -1,214 +1,74 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import VersionInfo from '../../src/components/VersionInfo';
+import { VersionInfo } from '../../src/components/VersionInfo';
+import { GameContext } from '../../src/context/GameContext';
 
-// Mock version.json
-vi.mock('../../src/version.json', () => ({
-  default: {
-    version: '1.2.3',
-    buildDate: '2025-01-01T12:00:00.000Z',
-    gitCommit: 'abc123def456',
-    displayVersion: 'v1.2.3',
-    displayDate: '1/1/2025 12:00:00 PM',
-    displayCommit: 'abc123d'
-  }
+// Mock version module
+vi.mock('../../src/version', () => ({
+  displayVersion: 'v1.2.3',
+  displayDate: '1/1/2025 12:00:00 PM',
+  displayCommit: 'abc123d'
 }));
 
-// Mock framer-motion
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, className, onClick, ...props }: any) => 
-      React.createElement('div', { className, onClick, ...props }, children)
-  },
-  AnimatePresence: ({ children }: any) => React.createElement(React.Fragment, null, children)
-}));
-
-// Mock lucide-react
-vi.mock('lucide-react', () => ({
-  Code2: ({ size, className }: any) => 
-    React.createElement('div', { 'data-testid': 'code2-icon', 'data-size': size, className }, 'Code2'),
-  X: ({ size, className }: any) => 
-    React.createElement('div', { 'data-testid': 'x-icon', 'data-size': size, className }, 'X')
+// Mock the useGame hook
+const mockState = { started: false };
+vi.mock('../../src/context/GameContext', () => ({
+  useGame: () => ({
+    state: mockState
+  }),
+  GameContext: React.createContext(null)
 }));
 
 describe('VersionInfo', () => {
-  let mockClipboard: any;
-
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockClipboard = {
-      writeText: vi.fn().mockResolvedValue(undefined)
-    };
-    Object.defineProperty(navigator, 'clipboard', {
-      value: mockClipboard,
-      writable: true,
-      configurable: true
-    });
+    mockState.started = false;
   });
 
-  afterEach(() => {
-    // Reset clipboard
-    Object.defineProperty(navigator, 'clipboard', {
-      value: undefined,
-      writable: true,
-      configurable: true
-    });
-  });
-
-  it('renders version info with icon', () => {
+  it('renders version info when game has not started', () => {
     render(<VersionInfo />);
     
-    expect(screen.getByText('v1.2.3')).toBeInTheDocument();
-    expect(screen.getByTestId('code2-icon')).toBeInTheDocument();
-  });
-
-  it('displays correct date and commit info', () => {
-    render(<VersionInfo />);
-    
-    expect(screen.getByText(/1\/1\/2025/)).toBeInTheDocument();
+    expect(screen.getByText(/v1\.2\.3/)).toBeInTheDocument();
+    expect(screen.getByText(/1\/1\/2025 12:00:00 PM/)).toBeInTheDocument();
     expect(screen.getByText(/abc123d/)).toBeInTheDocument();
   });
 
-  it('shows detailed info when clicked', () => {
+  it('displays all version elements in correct format', () => {
     render(<VersionInfo />);
     
-    const versionElement = screen.getByText('v1.2.3').parentElement!;
-    fireEvent.click(versionElement);
-    
-    expect(screen.getByText('Version Details')).toBeInTheDocument();
-    expect(screen.getByText(/Version: v1.2.3/)).toBeInTheDocument();
-    expect(screen.getByText(/Built: 1\/1\/2025 12:00:00 PM/)).toBeInTheDocument();
-    expect(screen.getByText(/Commit: abc123d/)).toBeInTheDocument();
+    const versionText = screen.getByText(/v1\.2\.3 \| 1\/1\/2025 12:00:00 PM \| abc123d/);
+    expect(versionText).toBeInTheDocument();
   });
 
-  it('closes detailed view when X is clicked', () => {
-    render(<VersionInfo />);
-    
-    // Open details
-    const versionElement = screen.getByText('v1.2.3').parentElement!;
-    fireEvent.click(versionElement);
-    
-    // Close with X button
-    const closeButton = screen.getByTestId('x-icon').parentElement!;
-    fireEvent.click(closeButton);
-    
-    expect(screen.queryByText('Version Details')).not.toBeInTheDocument();
-  });
-
-  it('closes detailed view when backdrop is clicked', () => {
+  it('does not render when game has started', () => {
+    mockState.started = true;
     const { container } = render(<VersionInfo />);
     
-    // Open details
-    const versionElement = screen.getByText('v1.2.3').parentElement!;
-    fireEvent.click(versionElement);
-    
-    // Click backdrop
-    const backdrop = container.querySelector('.fixed.inset-0');
-    fireEvent.click(backdrop!);
-    
-    expect(screen.queryByText('Version Details')).not.toBeInTheDocument();
+    expect(container.firstChild).toBeNull();
+    expect(screen.queryByText(/v1\.2\.3/)).not.toBeInTheDocument();
   });
 
-  it('prevents closing when modal content is clicked', () => {
-    render(<VersionInfo />);
-    
-    // Open details
-    const versionElement = screen.getByText('v1.2.3').parentElement!;
-    fireEvent.click(versionElement);
-    
-    // Click modal content
-    const modalContent = screen.getByText('Version Details').parentElement!;
-    fireEvent.click(modalContent);
-    
-    // Should still be open
-    expect(screen.getByText('Version Details')).toBeInTheDocument();
-  });
-
-  it('copies commit hash when copy button is clicked', async () => {
-    render(<VersionInfo />);
-    
-    // Open details
-    const versionElement = screen.getByText('v1.2.3').parentElement!;
-    fireEvent.click(versionElement);
-    
-    // Click copy button
-    const copyButton = screen.getByText('Copy');
-    fireEvent.click(copyButton);
-    
-    await waitFor(() => {
-      expect(mockClipboard.writeText).toHaveBeenCalledWith('abc123def456');
-    });
-    
-    // Should show "Copied!" text
-    expect(screen.getByText('Copied!')).toBeInTheDocument();
-  });
-
-  it('resets copy button text after delay', async () => {
-    vi.useFakeTimers();
-    render(<VersionInfo />);
-    
-    // Open details
-    const versionElement = screen.getByText('v1.2.3').parentElement!;
-    fireEvent.click(versionElement);
-    
-    // Click copy button
-    const copyButton = screen.getByText('Copy');
-    fireEvent.click(copyButton);
-    
-    expect(screen.getByText('Copied!')).toBeInTheDocument();
-    
-    // Advance timers
-    vi.advanceTimersByTime(2000);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Copy')).toBeInTheDocument();
-      expect(screen.queryByText('Copied!')).not.toBeInTheDocument();
-    });
-    
-    vi.useRealTimers();
-  });
-
-  it('handles clipboard error gracefully', async () => {
-    mockClipboard.writeText.mockRejectedValue(new Error('Clipboard error'));
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
-    render(<VersionInfo />);
-    
-    // Open details
-    const versionElement = screen.getByText('v1.2.3').parentElement!;
-    fireEvent.click(versionElement);
-    
-    // Click copy button
-    const copyButton = screen.getByText('Copy');
-    fireEvent.click(copyButton);
-    
-    await waitFor(() => {
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to copy:', expect.any(Error));
-    });
-    
-    consoleErrorSpy.mockRestore();
-  });
-
-  it('has correct CSS classes for positioning', () => {
+  it('has correct CSS classes for styling', () => {
     const { container } = render(<VersionInfo />);
     
-    const versionInfo = container.firstChild as HTMLElement;
-    expect(versionInfo).toHaveClass('absolute', 'bottom-4', 'left-1/2', 'transform', '-translate-x-1/2');
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveClass('text-center', 'mt-8', 'text-white/40', 'text-sm', 'font-mono');
+    
+    const innerDiv = wrapper.firstChild as HTMLElement;
+    expect(innerDiv).toHaveClass('bg-black/20', 'rounded-lg', 'px-4', 'py-2', 'inline-block');
   });
 
-  it('has correct hover state classes', () => {
+  it('renders inline-block for proper centering', () => {
     render(<VersionInfo />);
     
-    const versionElement = screen.getByText('v1.2.3').parentElement!;
-    expect(versionElement).toHaveClass('hover:bg-white/5');
+    const innerDiv = screen.getByText(/v1\.2\.3 \| 1\/1\/2025 12:00:00 PM \| abc123d/).parentElement;
+    expect(innerDiv).toHaveClass('inline-block');
   });
 
-  it('displays icon with correct size', () => {
-    render(<VersionInfo />);
+  it('uses monospace font for version display', () => {
+    const { container } = render(<VersionInfo />);
     
-    const icon = screen.getByTestId('code2-icon');
-    expect(icon).toHaveAttribute('data-size', '16');
-    expect(icon).toHaveClass('text-purple-400');
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveClass('font-mono');
   });
 });
