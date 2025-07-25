@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useGenerator } from '../../hooks/useGenerator';
 import { useSaveGame } from '../../hooks/useSaveGame';
+import { saveManager } from '../../services/SaveManager';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { motion } from 'framer-motion';
 import { Play, RotateCcw, Trophy, TrendingUp, Target } from 'lucide-react';
@@ -53,14 +54,28 @@ const StartScreen: React.FC = () => {
   const handleContinue = async () => {
     setLoading(true);
     try {
-      // Generate puzzle for the saved level
-      const puzzle = await generate(DIFFICULTIES.easy, currentLevel);
-      dispatch({ 
-        type: 'NEW_GAME', 
-        payload: { level: currentLevel, ...puzzle } 
-      });
+      // Load the full saved state
+      const savedState = await saveManager.load();
+      
+      if (savedState) {
+        // Generate puzzle for the saved level (needed for power/locked tiles info)
+        const puzzle = await generate(DIFFICULTIES.easy, savedState.currentLevel);
+        
+        dispatch({ 
+          type: 'CONTINUE_GAME', 
+          savedState,
+          puzzle
+        });
+      } else {
+        // Fallback to new game if save is corrupted
+        const puzzle = await generate(DIFFICULTIES.easy, currentLevel);
+        dispatch({ 
+          type: 'NEW_GAME', 
+          payload: { level: currentLevel, ...puzzle } 
+        });
+      }
     } catch (error) {
-      console.error('Failed to generate puzzle:', error);
+      console.error('Failed to continue game:', error);
       setLoading(false);
     }
   };

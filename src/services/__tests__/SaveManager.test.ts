@@ -114,7 +114,10 @@ describe('SaveManager', () => {
       localStorage.setItem('colorMeSame_save', JSON.stringify(gameState));
 
       const loaded = await saveManager.load();
-      expect(loaded).toEqual(gameState);
+      expect(loaded).toBeTruthy();
+      expect(loaded!.currentLevel).toBe(10);
+      expect(loaded!.totalPoints).toBe(2500);
+      expect(loaded!.version).toBe('1.1.0'); // Migrated version
     });
 
     it('should return null if no save exists', async () => {
@@ -140,7 +143,7 @@ describe('SaveManager', () => {
 
       const loaded = await saveManager.load();
       expect(loaded).toBeTruthy();
-      expect(loaded!.version).toBe('1.0.0');
+      expect(loaded!.version).toBe('1.1.0');
       expect(loaded!.levelPoints).toBe(0);
       expect(loaded!.stats).toBeTruthy();
     });
@@ -239,7 +242,7 @@ describe('SaveManager', () => {
       expect(save.totalPoints).toBe(2500);
       expect(save.levelPoints).toBe(250);
       expect(save.completedLevels).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      expect(save.version).toBe('1.0.0');
+      expect(save.version).toBe('1.1.0');
       expect(save.stats?.totalMoves).toBe(150);
     });
 
@@ -266,7 +269,7 @@ describe('SaveManager', () => {
 
       const migrated = saveManager.migrate(oldSave);
 
-      expect(migrated.version).toBe('1.0.0');
+      expect(migrated.version).toBe('1.1.0');
       expect(migrated.levelPoints).toBe(0);
       expect(migrated.stats).toEqual({
         totalMoves: 0,
@@ -290,6 +293,105 @@ describe('SaveManager', () => {
       expect(migrated.currentLevel).toBe(15);
       expect(migrated.totalPoints).toBe(5000);
       expect(migrated.completedLevels).toEqual([1, 2, 3, 4, 5]);
+    });
+  });
+
+  describe('currentGame state', () => {
+    it('should save current game state for mid-level resume', async () => {
+      const gameState: SavedGameState = {
+        currentLevel: 5,
+        totalPoints: 1000,
+        levelPoints: 50,
+        completedLevels: [1, 2, 3, 4],
+        lastPlayed: new Date().toISOString(),
+        version: '1.1.0',
+        currentGame: {
+          grid: [[0, 1, 2], [1, 2, 0], [2, 0, 1]],
+          targetGrid: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+          moves: 3,
+          time: 45,
+          optimalPath: [{ row: 0, col: 0 }, { row: 1, col: 1 }],
+          hintsEnabled: false,
+          undoCount: 1,
+          playerMoves: [{ row: 0, col: 0 }, { row: 1, col: 1 }, { row: 2, col: 2 }],
+          initialGrid: [[1, 1, 2], [1, 0, 0], [2, 0, 1]]
+        }
+      };
+
+      await saveManager.save(gameState);
+
+      const saved = JSON.parse(localStorage.getItem('colorMeSame_save')!);
+      expect(saved.currentGame).toBeDefined();
+      expect(saved.currentGame.grid).toEqual([[0, 1, 2], [1, 2, 0], [2, 0, 1]]);
+      expect(saved.currentGame.moves).toBe(3);
+      expect(saved.currentGame.playerMoves).toHaveLength(3);
+    });
+
+    it('should load current game state correctly', async () => {
+      const gameState: SavedGameState = {
+        currentLevel: 7,
+        totalPoints: 1500,
+        levelPoints: 0,
+        completedLevels: [1, 2, 3, 4, 5, 6],
+        lastPlayed: new Date().toISOString(),
+        version: '1.1.0',
+        currentGame: {
+          grid: [[2, 2, 2], [2, 0, 2], [2, 2, 2]],
+          targetGrid: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+          moves: 10,
+          time: 180,
+          optimalPath: [{ row: 1, col: 1 }],
+          hintsEnabled: true,
+          undoCount: 3,
+          playerMoves: Array(10).fill({ row: 0, col: 0 }),
+          initialGrid: [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
+        }
+      };
+
+      localStorage.setItem('colorMeSame_save', JSON.stringify(gameState));
+
+      const loaded = await saveManager.load();
+      expect(loaded).toBeTruthy();
+      expect(loaded!.currentGame).toBeDefined();
+      expect(loaded!.currentGame!.moves).toBe(10);
+      expect(loaded!.currentGame!.time).toBe(180);
+      expect(loaded!.currentGame!.hintsEnabled).toBe(true);
+    });
+
+    it('should handle saves without currentGame', async () => {
+      const gameState: SavedGameState = {
+        currentLevel: 10,
+        totalPoints: 2000,
+        levelPoints: 200,
+        completedLevels: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        lastPlayed: new Date().toISOString(),
+        version: '1.1.0'
+        // No currentGame - player completed the level
+      };
+
+      localStorage.setItem('colorMeSame_save', JSON.stringify(gameState));
+
+      const loaded = await saveManager.load();
+      expect(loaded).toBeTruthy();
+      expect(loaded!.currentGame).toBeUndefined();
+    });
+
+    it('should migrate old saves without currentGame', async () => {
+      const oldSave = {
+        currentLevel: 8,
+        totalPoints: 1800,
+        levelPoints: 100,
+        completedLevels: [1, 2, 3, 4, 5, 6, 7],
+        lastPlayed: '2024-01-01',
+        version: '1.0.0' // Old version without currentGame support
+      };
+
+      localStorage.setItem('colorMeSame_save', JSON.stringify(oldSave));
+
+      const loaded = await saveManager.load();
+      expect(loaded).toBeTruthy();
+      expect(loaded!.version).toBe('1.1.0');
+      expect(loaded!.currentGame).toBeUndefined();
     });
   });
 });

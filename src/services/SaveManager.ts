@@ -33,13 +33,25 @@ export interface SavedGameState {
     perfectLevels: number; // Completed in optimal moves
     hintsUsed: number;
   };
+  // Current game state for mid-level resume
+  currentGame?: {
+    grid: number[][];
+    targetGrid: number[][];
+    moves: number;
+    time: number;
+    optimalPath: { row: number; col: number }[];
+    hintsEnabled: boolean;
+    undoCount: number;
+    playerMoves: { row: number; col: number }[];
+    initialGrid: number[][];
+  };
 }
 
 /**
  * Current save format version
  * Increment when making breaking changes to SavedGameState
  */
-const CURRENT_SAVE_VERSION = '1.0.0';
+const CURRENT_SAVE_VERSION = '1.1.0';
 
 /**
  * localStorage key for game saves

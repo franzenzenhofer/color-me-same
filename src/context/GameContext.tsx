@@ -17,7 +17,7 @@
  * @module GameContext
  */
 
-import React, { useReducer, createContext, Dispatch, useContext, ReactNode } from 'react';
+import React, { useReducer, createContext, Dispatch, useContext, ReactNode, useEffect } from 'react';
 import { GenerationResult } from '../hooks/useGenerator';
 import { calculateLevelScore } from '../utils/scoring';
 import { isWinningState } from '../utils/grid';
@@ -142,7 +142,8 @@ type Action =
   | { type: 'TOGGLE_HINTS'; enabled?: boolean }
   | { type: 'UNDO' }
   | { type: 'RESET' }
-  | { type: 'LOAD_SAVE'; savedState: import('../services/SaveManager').SavedGameState };
+  | { type: 'LOAD_SAVE'; savedState: import('../services/SaveManager').SavedGameState }
+  | { type: 'CONTINUE_GAME'; savedState: import('../services/SaveManager').SavedGameState; puzzle: GenerationResult };
 
 const initial: GameState = {
   level: 1,
@@ -396,6 +397,9 @@ function reducer(state: GameState, action: Action): GameState {
         }
       );
       
+      // Clear currentGame since level is completed
+      saveState.currentGame = undefined;
+      
       saveManager.save(saveState).catch((error) => {
         log('error', 'Failed to auto-save after level completion', { error });
       });
@@ -537,6 +541,64 @@ function reducer(state: GameState, action: Action): GameState {
         undoCount: 0,
       };
     }
+    
+    case 'CONTINUE_GAME': {
+      const { savedState, puzzle } = action;
+      
+      // If there's a saved current game, restore it
+      if (savedState.currentGame) {
+        const { currentGame } = savedState;
+        
+        // Rebuild power and locked sets from the puzzle
+        const power = new Set<string>();
+        const locked = new Map<string, number>();
+        if (puzzle.power) {
+          puzzle.power.forEach((p) => power.add(p));
+        }
+        if (puzzle.locked) {
+          puzzle.locked.forEach((v, k) => locked.set(k, v));
+        }
+        
+        return {
+          ...state,
+          level: savedState.currentLevel,
+          totalPoints: savedState.totalPoints,
+          levelPoints: savedState.levelPoints,
+          completedLevels: savedState.completedLevels,
+          saveLoaded: true,
+          started: true,
+          won: false,
+          // Restore game state
+          grid: currentGame.grid,
+          initialGrid: currentGame.initialGrid,
+          solved: currentGame.targetGrid,
+          power,
+          locked,
+          initialLocked: new Map(locked),
+          moves: currentGame.moves,
+          time: currentGame.time,
+          optimalPath: currentGame.optimalPath,
+          playerMoves: currentGame.playerMoves,
+          hintsEnabled: currentGame.hintsEnabled,
+          undoCount: currentGame.undoCount,
+          undoHistory: [],
+          solution: puzzle.solution || [],
+          reverse: puzzle.reverse || [],
+          // Other puzzle data
+          maxUndos: state.level <= 10 ? -1 : state.level <= 30 ? 10 : Math.max(1, 15 - Math.floor(state.level / 10)),
+          showHints: state.level >= 1 && state.level <= 3,
+        };
+      }
+      
+      // Otherwise start a new game at the saved level
+      return {
+        ...reducer(state, { type: 'NEW_GAME', payload: { ...puzzle, level: savedState.currentLevel } }),
+        totalPoints: savedState.totalPoints,
+        levelPoints: savedState.levelPoints,
+        completedLevels: savedState.completedLevels,
+        saveLoaded: true,
+      };
+    }
 
     default:
       return state;
@@ -545,6 +607,43 @@ function reducer(state: GameState, action: Action): GameState {
 
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initial);
+  
+  // Auto-save game state after moves
+  useEffect(() => {
+    // Only save if game is in progress and not in tutorial
+    if (state.started && !state.won && state.moves > 0) {
+      const saveState = saveManager.createSaveState(
+        state.level,
+        state.totalPoints,
+        state.levelPoints,
+        state.completedLevels,
+        {
+          totalMoves: state.moves,
+          totalTime: state.time,
+          perfectLevels: 0,
+          hintsUsed: state.hintsEnabled ? 1 : 0
+        }
+      );
+      
+      // Add current game state
+      saveState.currentGame = {
+        grid: state.grid.map(row => [...row]),
+        targetGrid: state.solved.map(row => [...row]),
+        moves: state.moves,
+        time: state.time,
+        optimalPath: state.optimalPath,
+        hintsEnabled: state.hintsEnabled,
+        undoCount: state.undoCount,
+        playerMoves: state.playerMoves,
+        initialGrid: state.initialGrid.map(row => [...row])
+      };
+      
+      // Save asynchronously to avoid blocking UI
+      saveManager.save(saveState).catch((error) => {
+        log('error', 'Failed to auto-save game state', { error });
+      });
+    }
+  }, [state]); // Save on state changes
   
   return (
     <GameContext.Provider value={{ state, dispatch }}>
