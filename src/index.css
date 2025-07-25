@@ -48,10 +48,10 @@
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 
-           active:scale-95 transition-all duration-150 font-semibold
-           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
-           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-200 
+    @apply px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 
+           active:scale-95 transition-all duration-150 font-semibold backdrop-blur-sm
+           focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/20 
            disabled:active:scale-100;
   }
 

@@ -24,6 +24,7 @@ import { isWinningState } from '../utils/grid';
 import { applyClick } from '../utils/gridV2';
 import { log } from '../utils/logger';
 import { getLevelConfig } from '../utils/levelConfig';
+import { saveManager } from '../services/SaveManager';
 
 /**
  * Complete game state interface
@@ -83,6 +84,14 @@ interface GameState {
   belt: string;
   /** Unlocked achievement IDs */
   achievements: string[];
+  /** Total points across all levels */
+  totalPoints: number;
+  /** Points earned in current level */
+  levelPoints: number;
+  /** List of completed level numbers */
+  completedLevels: number[];
+  /** Whether a saved game was loaded */
+  saveLoaded: boolean;
   
   // === UI State ===
   /** Whether to show tutorial modal */
@@ -121,7 +130,8 @@ type Action =
   | { type: 'NEXT_LEVEL' }
   | { type: 'TOGGLE_HINTS'; enabled?: boolean }
   | { type: 'UNDO' }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  | { type: 'LOAD_SAVE'; savedState: import('../services/SaveManager').SavedGameState };
 
 const initial: GameState = {
   level: 1,
@@ -152,6 +162,10 @@ const initial: GameState = {
   undoHistory: [],
   undoCount: 0,
   maxUndos: -1, // Unlimited for easy
+  totalPoints: 0,
+  levelPoints: 0,
+  completedLevels: [],
+  saveLoaded: false,
 };
 
 interface GameContextType {
@@ -329,7 +343,37 @@ function reducer(state: GameState, action: Action): GameState {
     }
 
     case 'WIN': {
-      return { ...state, won: true, showVictory: true };
+      // Calculate points for this level
+      const levelPoints = state.score;
+      const totalPoints = state.totalPoints + levelPoints;
+      const completedLevels = [...state.completedLevels, state.level];
+      
+      // Auto-save progress
+      const saveState = saveManager.createSaveState(
+        state.level + 1, // Next level
+        totalPoints,
+        0, // Reset level points for next level
+        completedLevels,
+        {
+          totalMoves: state.moves,
+          totalTime: state.time,
+          perfectLevels: state.moves === state.optimalPath.length ? 1 : 0,
+          hintsUsed: state.hintsEnabled ? 1 : 0
+        }
+      );
+      
+      saveManager.save(saveState).catch((error) => {
+        log('error', 'Failed to auto-save after level completion', { error });
+      });
+      
+      return { 
+        ...state, 
+        won: true, 
+        showVictory: true,
+        levelPoints,
+        totalPoints,
+        completedLevels
+      };
     }
 
     case 'PAUSE': {
@@ -380,6 +424,7 @@ function reducer(state: GameState, action: Action): GameState {
       return {
         ...state,
         level: state.level + 1,
+        levelPoints: 0, // Reset for new level
         showVictory: false,
         // Clear hints after level 1
         showHints: false,
@@ -428,6 +473,33 @@ function reducer(state: GameState, action: Action): GameState {
         won: false,
         score: 0,
         showVictory: false,
+      };
+    }
+
+    case 'LOAD_SAVE': {
+      const { savedState } = action;
+      
+      return {
+        ...state,
+        level: savedState.currentLevel,
+        totalPoints: savedState.totalPoints,
+        levelPoints: savedState.levelPoints,
+        completedLevels: savedState.completedLevels,
+        saveLoaded: true,
+        // Reset game-specific state
+        started: false,
+        won: false,
+        grid: [],
+        initialGrid: [],
+        solved: [],
+        power: new Set(),
+        locked: new Map(),
+        initialLocked: new Map(),
+        moves: 0,
+        time: 0,
+        playerMoves: [],
+        undoHistory: [],
+        undoCount: 0,
       };
     }
 

@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useGenerator } from '../../hooks/useGenerator';
+import { useSaveGame } from '../../hooks/useSaveGame';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { motion } from 'framer-motion';
-import { Play } from 'lucide-react';
+import { Play, RotateCcw } from 'lucide-react';
 
 const StartScreen: React.FC = () => {
   const { state, dispatch } = useGame();
   const { generate } = useGenerator();
+  const { hasSave, clearSave, currentLevel, totalPoints, completedLevels } = useSaveGame();
   const [loading, setLoading] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   if (state.started) return null;
+  
+  const savedGameExists = hasSave();
 
-  const handleStart = async () => {
+  const handleNewGame = async () => {
     setLoading(true);
     try {
       // Always start at level 1 for new games
@@ -28,6 +33,26 @@ const StartScreen: React.FC = () => {
       console.error('Failed to generate puzzle:', error);
       setLoading(false);
     }
+  };
+  
+  const handleContinue = async () => {
+    setLoading(true);
+    try {
+      // Generate puzzle for the saved level
+      const puzzle = await generate(DIFFICULTIES.easy, currentLevel);
+      dispatch({ 
+        type: 'NEW_GAME', 
+        payload: { level: currentLevel, ...puzzle } 
+      });
+    } catch (error) {
+      console.error('Failed to generate puzzle:', error);
+      setLoading(false);
+    }
+  };
+  
+  const handleClearSave = async () => {
+    await clearSave();
+    setShowClearConfirm(false);
   };
 
   return (
@@ -52,31 +77,93 @@ const StartScreen: React.FC = () => {
         </p>
       </div>
 
-      {/* Start button */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={handleStart}
-        disabled={loading}
-        className="btn-primary text-lg px-8 py-3 flex items-center gap-3 mx-auto mb-4"
-      >
-        {loading ? (
+      {/* Game buttons */}
+      <div className="flex flex-col gap-3 items-center mb-4">
+        {savedGameExists && (
           <>
-            <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
-            <span>Generating...</span>
-          </>
-        ) : (
-          <>
-            <Play size={20} />
-            <span>New Game</span>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleContinue}
+              disabled={loading}
+              className="btn-primary text-lg px-8 py-3 flex items-center gap-3"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
+                  <span>Loading...</span>
+                </>
+              ) : (
+                <>
+                  <Play size={20} />
+                  <span>Continue Level {currentLevel}</span>
+                </>
+              )}
+            </motion.button>
+            
+            <div className="text-sm text-white/70">
+              {totalPoints.toLocaleString()} points • {completedLevels.length} levels completed
+            </div>
           </>
         )}
-      </motion.button>
+        
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleNewGame}
+          disabled={loading}
+          className={`${savedGameExists ? 'btn-secondary' : 'btn-primary'} text-lg px-8 py-3 flex items-center gap-3`}
+        >
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
+              <span>Generating...</span>
+            </>
+          ) : (
+            <>
+              <RotateCcw size={20} />
+              <span>New Game</span>
+            </>
+          )}
+        </motion.button>
+      </div>
 
       {/* Starting level info */}
-      <p className="text-white/60 text-sm">
-        Starting at Level 1 • 3×3 Grid • 1 Move
-      </p>
+      {!savedGameExists && (
+        <p className="text-white/60 text-sm mb-4">
+          Starting at Level 1 • 3×3 Grid • 1 Move
+        </p>
+      )}
+      
+      {/* Clear save option */}
+      {savedGameExists && (
+        <div className="mt-8">
+          {showClearConfirm ? (
+            <div className="flex items-center gap-3 justify-center">
+              <span className="text-white/70 text-sm">Clear all progress?</span>
+              <button
+                onClick={handleClearSave}
+                className="text-red-400 hover:text-red-300 text-sm font-medium"
+              >
+                Yes, Clear
+              </button>
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="text-white/70 hover:text-white text-sm font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowClearConfirm(true)}
+              className="text-white/50 hover:text-white/70 text-sm"
+            >
+              Clear Progress
+            </button>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 };

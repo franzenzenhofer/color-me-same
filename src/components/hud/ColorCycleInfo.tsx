@@ -19,10 +19,7 @@ const ColorCycleInfo: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="mt-2 p-2 bg-black/20 backdrop-blur-sm rounded-lg"
     >
-      <p className="text-xs text-white/70 text-center mb-1">
-        Color Cycle ({colorCount} colors)
-      </p>
-      <div className="flex items-center justify-center gap-1">
+      <div className="flex items-center justify-center gap-1 mb-1">
         {colors.map((color, index) => (
           <React.Fragment key={color}>
             <div
@@ -43,6 +40,9 @@ const ColorCycleInfo: React.FC = () => {
           title="Back to first color"
         />
       </div>
+      <p className="text-xs text-white/70 text-center">
+        Color Cycle ({colorCount} colors)
+      </p>
     </motion.div>
   );
 };
