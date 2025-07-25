@@ -19,7 +19,7 @@
 
 import React, { useReducer, createContext, Dispatch, useContext, ReactNode } from 'react';
 import { GenerationResult } from '../hooks/useGenerator';
-import { computeScore } from '../utils/score';
+import { calculateLevelScore } from '../utils/scoring';
 import { isWinningState } from '../utils/grid';
 import { applyClick } from '../utils/gridV2';
 import { log } from '../utils/logger';
@@ -272,16 +272,8 @@ function reducer(state: GameState, action: Action): GameState {
       const won = isWinningState(nextGrid);
       const newMoves = state.moves + 1;
       
-      // Calculate score based on optimal path
-      const score = won
-        ? computeScore(
-            newMoves,
-            state.optimalPath.length,
-            state.time,
-            0, // Time limit will be determined by level
-            1 + (state.level / 10) // Level-based bonus
-          )
-        : state.score;
+      // Score is calculated only on WIN action, not during gameplay
+      const score = state.score;
 
       // Log move for debugging
       const isOnOptimalPath = newPlayerMoves.length <= state.optimalPath.length &&
@@ -343,8 +335,18 @@ function reducer(state: GameState, action: Action): GameState {
     }
 
     case 'WIN': {
-      // Calculate points for this level
-      const levelPoints = state.score;
+      // Calculate complete score for this level
+      const levelScore = calculateLevelScore({
+        level: state.level,
+        moves: state.moves,
+        optimalMoves: state.optimalPath.length,
+        time: state.time,
+        hintsUsed: state.hintsEnabled,
+        undoUsed: state.undoCount > 0,
+        powerTilesUsedOptimally: 0 // TODO: Track power tile usage
+      });
+      
+      const levelPoints = levelScore.totalPoints;
       const totalPoints = state.totalPoints + levelPoints;
       const completedLevels = [...state.completedLevels, state.level];
       
@@ -370,6 +372,7 @@ function reducer(state: GameState, action: Action): GameState {
         ...state, 
         won: true, 
         showVictory: true,
+        score: levelPoints, // Store level points in score field
         levelPoints,
         totalPoints,
         completedLevels

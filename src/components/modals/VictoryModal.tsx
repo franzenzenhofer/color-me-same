@@ -1,10 +1,11 @@
 import React from 'react';
 import { useGame } from '../../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Clock, Target, Star, ArrowRight } from 'lucide-react';
+import { Trophy, Clock, Target, Star, ArrowRight, Shield } from 'lucide-react';
 import { useGenerator } from '../../hooks/useGenerator';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { getLevelMilestoneDescription } from '../../utils/levelConfig';
+import { calculateLevelScore, formatPoints } from '../../utils/scoring';
 
 interface VictoryModalProps {
   onShowAchievements?: (achievements: string[]) => void;
@@ -12,7 +13,7 @@ interface VictoryModalProps {
 
 const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShowAchievements }) => {
   const { state, dispatch } = useGame();
-  const { showVictory, won, score, moves, solution, time, level } = state;
+  const { showVictory, won, score, moves, optimalPath, time, level, hintsEnabled, undoCount, totalPoints } = state;
   const { generate } = useGenerator();
 
   if (!showVictory) return null;
@@ -23,8 +24,19 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const efficiency = solution.length ? Math.round((solution.length / moves) * 100) : 100;
+  const efficiency = optimalPath.length ? Math.round((optimalPath.length / moves) * 100) : 100;
   const stars = efficiency >= 90 ? 3 : efficiency >= 70 ? 2 : 1;
+  
+  // Calculate score breakdown
+  const levelScore = won ? calculateLevelScore({
+    level,
+    moves,
+    optimalMoves: optimalPath.length,
+    time,
+    hintsUsed: hintsEnabled,
+    undoUsed: undoCount > 0,
+    powerTilesUsedOptimally: 0 // TODO: Track power tile usage
+  }) : null;
 
   const handleNewGame = () => {
     window.location.reload(); // Simple reload for now
@@ -90,19 +102,73 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                 ))}
               </div>
               
-              <div className="space-y-1 mb-4">
+              <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-center gap-2">
                   <Target size={20} className="text-gray-600" />
-                  <span>Moves: <strong>{moves}</strong> / {solution.length}</span>
+                  <span>Moves: <strong>{moves}</strong> / {optimalPath.length}</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   <Clock size={20} className="text-gray-600" />
                   <span>Time: <strong>{formatTime(time)}</strong></span>
                 </div>
-                <div className="flex items-center justify-center gap-2">
-                  <Trophy size={20} className="text-gray-600" />
-                  <span>Score: <strong className="text-xl">{score}</strong></span>
-                </div>
+                
+                {/* Score breakdown */}
+                {levelScore && levelScore.totalPoints > 0 && (
+                  <>
+                    <div className="border-t pt-2 mt-2">
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Base Points:</span>
+                          <span>{levelScore.basePoints}</span>
+                        </div>
+                        {levelScore.moveBonus > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Move Bonus:</span>
+                            <span className="text-green-600">+{levelScore.moveBonus}</span>
+                          </div>
+                        )}
+                        {levelScore.timeBonus > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Time Bonus:</span>
+                            <span className="text-green-600">+{levelScore.timeBonus}</span>
+                          </div>
+                        )}
+                        {levelScore.perfectBonus > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Perfect Bonus:</span>
+                            <span className="text-green-600">+{levelScore.perfectBonus}</span>
+                          </div>
+                        )}
+                        {undoCount > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Undo Penalty:</span>
+                            <span className="text-red-600">-25%</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="border-t pt-2">
+                      <div className="flex items-center justify-center gap-2">
+                        <Trophy size={20} className="text-yellow-500" />
+                        <span className="text-lg font-bold">{formatPoints(score)} points</span>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Total: {formatPoints(totalPoints)}
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {/* Zero points message for hints */}
+                {hintsEnabled && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                    <div className="flex items-center gap-2 text-yellow-800">
+                      <Shield size={16} />
+                      <span className="text-sm">No points awarded (hints used)</span>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <p className="text-sm text-gray-600 mb-2">

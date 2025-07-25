@@ -3,10 +3,11 @@ import { Timer, Target, Trophy, Hash } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { useTimer } from '../../hooks/useTimer';
 import { motion } from 'framer-motion';
+import { formatPoints } from '../../utils/scoring';
 
 const Dashboard: React.FC = () => {
   const { state, dispatch } = useGame();
-  const { started, time, moves, score, won, level } = state;
+  const { started, time, moves, won, level, totalPoints } = state;
 
   // Global timer
   const timeLimit = 0; // No time limits in new progression system
@@ -44,7 +45,8 @@ const Dashboard: React.FC = () => {
         />
         <Stat
           icon={<Trophy size={18} />}
-          value={score}
+          value={formatPoints(totalPoints)}
+          label="Points"
         />
         <Stat
           icon={<Hash size={18} />}
