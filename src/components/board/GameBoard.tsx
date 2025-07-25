@@ -17,7 +17,7 @@
  * @module GameBoard
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
 import Tile from './Tile';
 import { useDynamicHint } from '../../hooks/useDynamicHint';
@@ -41,7 +41,6 @@ import { DIFFICULTIES } from '../../constants/gameConfig';
 const GameBoard: React.FC = () => {
   const { state, dispatch } = useGame();
   const { grid, power, locked, started, won, paused, difficulty, showHints, optimalPath, playerMoves } = state;
-  const [tileSize, setTileSize] = useState(60);
   
   // Dynamic hint calculation with optimal path tracking
   const { nextMove: hintMove, isCalculating, isOnOptimalPath } = useDynamicHint(
@@ -75,74 +74,6 @@ const GameBoard: React.FC = () => {
     }
   }, [won, state.showVictory, dispatch]);
 
-  /**
-   * Calculate responsive tile size based on viewport and grid dimensions
-   * 
-   * This effect runs whenever the grid changes or window resizes. It ensures
-   * that any grid size (3x3 to 20x20) fits perfectly on any screen size while
-   * maintaining square tiles and leaving room for UI elements.
-   * 
-   * Algorithm:
-   * 1. Calculate available space after UI elements
-   * 2. Determine max tile size for width and height
-   * 3. Use the smaller to ensure grid fits
-   * 4. Apply min/max constraints for usability
-   */
-  useEffect(() => {
-    const calculateTileSize = () => {
-      if (!grid.length) return;
-      
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      
-      // Calculate using viewport width for true responsiveness
-      // Reserve 4% of viewport width for padding
-      const availableVw = 96;
-      
-      // Gap between tiles as percentage of viewport width
-      const tileGapVw = 0.3; // 0.3vw gap
-      const totalGapVw = tileGapVw * (grid.length - 1);
-      
-      // Calculate tile size in vw units
-      const tileWidthVw = (availableVw - totalGapVw) / grid.length;
-      
-      // Convert vw to pixels
-      const tileWidthPx = (tileWidthVw / 100) * viewportWidth;
-      
-      // Calculate height-based size with dynamic UI reservation
-      const uiReservation = viewportWidth < 768 
-        ? Math.min(260, viewportHeight * 0.35) // Mobile: max 35% for UI
-        : Math.min(280, viewportHeight * 0.28); // Desktop: max 28% for UI
-      
-      const availableHeight = viewportHeight - uiReservation;
-      const tileGapPx = (tileGapVw / 100) * viewportWidth;
-      const totalGapPxHeight = tileGapPx * (grid.length - 1);
-      const tileHeightPx = (availableHeight - totalGapPxHeight - 20) / grid.length;
-      
-      // Use the smaller dimension to maintain square tiles
-      let calculatedSize = Math.min(tileWidthPx, tileHeightPx);
-      
-      // Dynamic minimum sizes based on grid size
-      const minSize = grid.length >= 20 ? 15 : 
-                      grid.length >= 16 ? 18 :
-                      grid.length >= 12 ? 22 :
-                      grid.length >= 10 ? 28 :
-                      grid.length >= 6 ? 35 : 45;
-      
-      // Maximum size to prevent tiles from being too large on big screens
-      const maxSize = viewportWidth < 768 ? 65 : 85;
-      
-      // Apply constraints
-      calculatedSize = Math.max(minSize, Math.min(maxSize, calculatedSize));
-      
-      setTileSize(Math.floor(calculatedSize));
-    };
-    
-    calculateTileSize();
-    window.addEventListener('resize', calculateTileSize);
-    
-    return () => window.removeEventListener('resize', calculateTileSize);
-  }, [grid.length]);
 
   if (!started || !grid.length) return null;
 
@@ -160,12 +91,16 @@ const GameBoard: React.FC = () => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="relative flex flex-col items-center justify-center flex-1 py-2"
+      className="relative flex flex-col items-center justify-center flex-1 py-2 -mx-2 px-2 sm:mx-0 sm:px-0"
     >
       <div
-        className="grid gap-1 bg-black/20 backdrop-blur-sm p-2 rounded-xl max-w-full"
+        className="grid gap-1 bg-black/20 backdrop-blur-sm rounded-xl p-2 w-full"
         style={{ 
-          gridTemplateColumns: `repeat(${grid.length}, minmax(0, ${tileSize}px))`
+          gridTemplateColumns: `repeat(${grid.length}, 1fr)`,
+          gridAutoRows: '1fr',
+          aspectRatio: '1 / 1',
+          maxHeight: 'calc(100vh - 280px)',
+          maxWidth: '600px'
         }}
       >
         {grid.map((row, r) =>
