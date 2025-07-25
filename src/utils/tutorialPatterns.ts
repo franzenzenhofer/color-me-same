@@ -27,13 +27,14 @@ export interface TutorialPattern {
 export function getTutorialPattern(level: number): TutorialPattern | null {
   switch (level) {
     case 1:
-      // Level 1: Exactly 1 tap in the center
+      // Level 1: Exactly 1 tap in the center - SIMPLE ONE TAP WIN
+      // Pattern: tap center once → all tiles become 0
       return {
         level: 1,
         initialGrid: [
-          [0, 0, 0],
-          [0, 1, 0],
-          [0, 0, 0]
+          [0, 2, 0],
+          [2, 2, 2],
+          [0, 2, 0]
         ],
         targetGrid: [
           [0, 0, 0],
