@@ -88,12 +88,22 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
     const generationHistory: { row: number; col: number }[] = [];
     const usedPositions = new Set<string>();
     
-    // Smart move selection to ensure exact move count
-    for (let moveNum = 0; moveNum < requiredMoves; moveNum++) {
-      let bestMove: { row: number; col: number } | null = null;
+    // Special case for level 1: Always use center tile
+    if (config.level === 1 && requiredMoves === 1) {
+      const centerRow = Math.floor(gridSize / 2);
+      const centerCol = Math.floor(gridSize / 2);
+      generationHistory.push({ row: centerRow, col: centerCol });
       
-      // Try to find a move that creates maximum change
-      const candidates = [];
+      // Apply the single center click
+      const isPower = power.has(`${centerRow}-${centerCol}`);
+      currentGrid = applyReverseClick(currentGrid, centerRow, centerCol, colors, isPower, new Map());
+    } else {
+      // Smart move selection to ensure exact move count
+      for (let moveNum = 0; moveNum < requiredMoves; moveNum++) {
+        let bestMove: { row: number; col: number } | null = null;
+        
+        // Try to find a move that creates maximum change
+        const candidates = [];
       for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
           candidates.push({ row: r, col: c });
@@ -133,6 +143,7 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
       const isPower = power.has(`${bestMove.row}-${bestMove.col}`);
       currentGrid = applyReverseClick(currentGrid, bestMove.row, bestMove.col, colors, isPower, new Map());
       generationHistory.push(bestMove);
+      }
     }
     
     // The optimal solution is the reverse of generation

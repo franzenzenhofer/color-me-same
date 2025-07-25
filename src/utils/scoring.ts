@@ -68,6 +68,12 @@ export function calculateMoveBonus(
   if (moves === optimalMoves) {
     // Perfect play: +50% of base points
     return Math.round(basePoints * 0.5);
+  } else if (moves < optimalMoves) {
+    // Super efficiency! Player found a better solution
+    // Give +50% base bonus PLUS extra 20% for each move saved
+    const movesSaved = optimalMoves - moves;
+    const superBonus = 0.5 + (movesSaved * 0.2);
+    return Math.round(basePoints * superBonus);
   }
   
   // Each extra move reduces bonus by 10%

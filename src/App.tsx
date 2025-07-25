@@ -32,6 +32,7 @@ import StartScreen from './components/screens/StartScreen';
 import { VersionInfo } from './components/VersionInfo';
 import Header from './components/layout/Header';
 import SaveGameLoader from './components/SaveGameLoader';
+import { ToastProvider } from './context/ToastContext';
 
 /**
  * Root Application Component
@@ -65,27 +66,29 @@ const App: React.FC = () => {
 
   return (
     <GameProvider>
-      <SaveGameLoader>
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-          <Header />
-          <PageShell>
-            <StartScreen />
-            <Dashboard />
-            <PowerUps />
-            <GameBoard />
-            <ColorCycleInfo />
-            <ProgressBar />
-            <TutorialModal />
-            <VictoryModal onShowAchievements={showAchievements} />
-            <AchievementModal
-              isOpen={achievementModal.isOpen}
-              achievements={achievementModal.achievements}
-              onClose={closeAchievements}
-            />
-            <VersionInfo />
-          </PageShell>
-        </div>
-      </SaveGameLoader>
+      <ToastProvider>
+        <SaveGameLoader>
+          <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+            <Header />
+            <PageShell>
+              <StartScreen />
+              <Dashboard />
+              <PowerUps />
+              <GameBoard />
+              <ColorCycleInfo />
+              <ProgressBar />
+              <TutorialModal />
+              <VictoryModal onShowAchievements={showAchievements} />
+              <AchievementModal
+                isOpen={achievementModal.isOpen}
+                achievements={achievementModal.achievements}
+                onClose={closeAchievements}
+              />
+              <VersionInfo />
+            </PageShell>
+          </div>
+        </SaveGameLoader>
+      </ToastProvider>
     </GameProvider>
   );
 };

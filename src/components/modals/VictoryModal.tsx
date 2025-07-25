@@ -24,8 +24,9 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const efficiency = optimalPath.length ? Math.round((optimalPath.length / moves) * 100) : 100;
-  const stars = efficiency >= 90 ? 3 : efficiency >= 70 ? 2 : 1;
+  // Calculate efficiency - can be over 100% if player beats optimal path!
+  const efficiency = optimalPath.length && moves > 0 ? Math.round((optimalPath.length / moves) * 100) : 100;
+  const stars = efficiency >= 100 ? 3 : efficiency >= 80 ? 2 : 1;
   
   // Calculate score breakdown
   const levelScore = won ? calculateLevelScore({
@@ -123,7 +124,10 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                         </div>
                         {levelScore.moveBonus > 0 && (
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Move Bonus:</span>
+                            <span className="text-gray-600">
+                              Move Bonus:
+                              {moves < optimalPath.length && " 🌟"}
+                            </span>
                             <span className="text-green-600">+{levelScore.moveBonus}</span>
                           </div>
                         )}
@@ -173,6 +177,11 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
               
               <p className="text-sm text-gray-600 mb-2">
                 Efficiency: {efficiency}%
+                {efficiency > 100 && (
+                  <span className="text-yellow-600 font-bold ml-2">
+                    🌟 Super Efficient!
+                  </span>
+                )}
               </p>
               
               {/* Show milestone message for next level */}

@@ -17,13 +17,14 @@
  * @module GameBoard
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import Tile from './Tile';
 import { useDynamicHint } from '../../hooks/useDynamicHint';
 import { useSolvabilityCheck } from '../../hooks/useSolvabilityCheck';
 import { motion } from 'framer-motion';
 import { getLevelConfig } from '../../utils/levelConfig';
+import { useToast } from '../../context/ToastContext';
 
 /**
  * GameBoard Component - Renders the interactive puzzle grid
@@ -41,9 +42,13 @@ import { getLevelConfig } from '../../utils/levelConfig';
 const GameBoard: React.FC = () => {
   const { state, dispatch } = useGame();
   const { grid, power, locked, started, won, paused, level, showHints, optimalPath, playerMoves } = state;
+  const { showToast } = useToast();
+  
+  // Track if hint toast has been shown this session
+  const [hintToastShown, setHintToastShown] = useState(false);
   
   // Dynamic hint calculation with optimal path tracking
-  const { nextMove: hintMove, isCalculating, isOnOptimalPath } = useDynamicHint(
+  const { nextMove: hintMove, isOnOptimalPath } = useDynamicHint(
     grid,
     power,
     locked,
@@ -73,6 +78,24 @@ const GameBoard: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [won, state.showVictory, dispatch]);
+  
+  // Show hint toast on first hint activation
+  useEffect(() => {
+    if (showHints && !hintToastShown && hintMove && !won) {
+      const message = isOnOptimalPath 
+        ? "💡 Hint: Click the highlighted tile (optimal path)"
+        : "💡 Hint: Click the highlighted tile (new path)";
+      showToast(message, 'info', 4000);
+      setHintToastShown(true);
+    }
+  }, [showHints, hintToastShown, hintMove, isOnOptimalPath, showToast, won]);
+  
+  // Reset hint toast state when starting a new game
+  useEffect(() => {
+    if (started && playerMoves.length === 0) {
+      setHintToastShown(false);
+    }
+  }, [started, playerMoves.length]);
 
 
   if (!started || !grid.length) return null;
@@ -148,21 +171,6 @@ const GameBoard: React.FC = () => {
           })
         )}
       </div>
-      
-      {showHints && hintMove && !won && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mt-2 text-white/80"
-        >
-          <p className="text-sm">
-            💡 Hint: Click the highlighted tile
-            {isOnOptimalPath && " (optimal path)"}
-            {!isOnOptimalPath && " (new path)"}
-            {isCalculating && " (calculating...)"}
-          </p>
-        </motion.div>
-      )}
       
       {/* Unsolvable warning */}
       {!isSolvable && !isChecking && !won && (
