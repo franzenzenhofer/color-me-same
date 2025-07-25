@@ -163,31 +163,31 @@ export function getLevelConfig(level: number): LevelConfig {
 export function getLevelMilestoneDescription(level: number): string | null {
   switch (level) {
     case 1:
-      return "Welcome! Click a tile to change colors.";
+      return "Tap center";
     case 2:
-      return "Great! Now try solving in 2 moves.";
+      return "2 taps";
     case 3:
-      return "Last tutorial level - hints will be disabled after this.";
+      return "3 taps";
     case 4:
-      return "Hints disabled - you're on your own now!";
+      return "No hints";
     case 21:
-      return "Grid expanded to 4×4!";
+      return "4×4";
     case 31:
-      return "Power tiles introduced - they affect a 3×3 area!";
+      return "Power tiles";
     case 41:
-      return "New color added to the palette!";
+      return "4 colors";
     case 46:
-      return "Maximum 5 colors unlocked!";
+      return "5 colors";
     case 51:
-      return "Grid expanded to 5×5!";
+      return "5×5";
     case 71:
-      return "Locked tiles introduced - click other tiles to unlock!";
+      return "Locked tiles";
     case 101:
-      return "Grid expanded to 6×6 - Expert mode!";
+      return "6×6";
     case 151:
-      return "Grid expanded to 7×7 - Master challenges!";
+      return "7×7";
     case 201:
-      return "Grid expanded to 8×8 - Legendary puzzles!";
+      return "8×8";
     default:
       // Check for every 50 levels
       if (level > 200 && level % 50 === 1) {

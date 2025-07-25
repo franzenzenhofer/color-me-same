@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGame } from '../../context/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Clock, Target, Star, ArrowRight, Shield } from 'lucide-react';
+import { Trophy, Star, ArrowRight, Shield } from 'lucide-react';
 import { useGenerator } from '../../hooks/useGenerator';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { getLevelMilestoneDescription } from '../../utils/levelConfig';
@@ -19,11 +19,6 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
 
   if (!showVictory) return null;
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   // Calculate efficiency - can be over 100% if player beats optimal path!
   const efficiency = optimalPath.length && moves > 0 ? Math.round((optimalPath.length / moves) * 100) : 100;
@@ -87,7 +82,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
               </motion.div>
               
               <h2 className="text-2xl font-bold text-green-600 mb-2">
-                {isTutorialLevel(level) ? 'Tutorial Complete!' : 'Puzzle Solved!'}
+                {isTutorialLevel(level) ? '✓' : '✓'}
               </h2>
               
               {isTutorialLevel(level) && (
@@ -115,12 +110,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
               
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-center gap-2">
-                  <Target size={20} className="text-gray-600" />
-                  <span>Moves: <strong>{moves}</strong> / {optimalPath.length}</span>
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                  <Clock size={20} className="text-gray-600" />
-                  <span>Time: <strong>{formatTime(time)}</strong></span>
+                  <span>{moves}/{optimalPath.length}</span>
                 </div>
                 
                 {/* Score breakdown */}
@@ -179,19 +169,14 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                   <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
                     <div className="flex items-center gap-2 text-yellow-800">
                       <Shield size={16} />
-                      <span className="text-sm">No points awarded (hints used)</span>
+                      <span className="text-sm">Hints: 0 pts</span>
                     </div>
                   </div>
                 )}
               </div>
               
               <p className="text-sm text-gray-600 mb-2">
-                Efficiency: {efficiency}%
-                {efficiency > 100 && (
-                  <span className="text-yellow-600 font-bold ml-2">
-                    🌟 Super Efficient!
-                  </span>
-                )}
+                {efficiency}%
               </p>
               
               {/* Show milestone message for next level */}
@@ -207,7 +192,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                       className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2"
                     >
                       <p className="text-sm text-blue-800 font-medium">
-                        Next Level: {milestone}
+                        {milestone}
                       </p>
                     </motion.div>
                   );

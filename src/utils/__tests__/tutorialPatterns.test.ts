@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getTutorialPattern, isTutorialLevel, getTutorialCompleteMessage } from '../tutorialPatterns';
+import { applyClick } from '../gridV2';
 
 describe('Tutorial Patterns', () => {
   describe('getTutorialPattern', () => {
@@ -11,17 +12,13 @@ describe('Tutorial Patterns', () => {
       expect(pattern!.solution).toHaveLength(1);
       expect(pattern!.solution[0]).toEqual({ row: 1, col: 1 }); // Center tile
       
-      // Check initial grid has only center tile different
+      // Check initial grid pattern
       const grid = pattern!.initialGrid;
-      expect(grid[1][1]).toBe(1); // Center is different
-      expect(grid[0][0]).toBe(0); // All others are 0
-      expect(grid[0][1]).toBe(0);
-      expect(grid[0][2]).toBe(0);
-      expect(grid[1][0]).toBe(0);
-      expect(grid[1][2]).toBe(0);
-      expect(grid[2][0]).toBe(0);
-      expect(grid[2][1]).toBe(0);
-      expect(grid[2][2]).toBe(0);
+      expect(grid).toEqual([
+        [0, 2, 0],
+        [2, 2, 2],
+        [0, 2, 0]
+      ]);
     });
     
     it('should return correct pattern for level 2', () => {
@@ -30,16 +27,16 @@ describe('Tutorial Patterns', () => {
       expect(pattern).toBeTruthy();
       expect(pattern!.level).toBe(2);
       expect(pattern!.solution).toHaveLength(2);
-      expect(pattern!.solution[0]).toEqual({ row: 1, col: 1 });
-      expect(pattern!.solution[1]).toEqual({ row: 0, col: 1 });
+      expect(pattern!.solution[0]).toEqual({ row: 0, col: 0 });
+      expect(pattern!.solution[1]).toEqual({ row: 1, col: 1 });
       
-      // Check cross pattern
+      // Check initial grid pattern
       const grid = pattern!.initialGrid;
-      expect(grid[0][1]).toBe(1); // Top
-      expect(grid[1][0]).toBe(1); // Left
-      expect(grid[1][1]).toBe(0); // Center
-      expect(grid[1][2]).toBe(1); // Right
-      expect(grid[2][1]).toBe(1); // Bottom
+      expect(grid).toEqual([
+        [2, 1, 0],
+        [1, 2, 2],
+        [0, 2, 0]
+      ]);
     });
     
     it('should return correct pattern for level 3', () => {
@@ -49,16 +46,16 @@ describe('Tutorial Patterns', () => {
       expect(pattern!.level).toBe(3);
       expect(pattern!.solution).toHaveLength(3);
       expect(pattern!.solution[0]).toEqual({ row: 0, col: 0 });
-      expect(pattern!.solution[1]).toEqual({ row: 0, col: 2 });
-      expect(pattern!.solution[2]).toEqual({ row: 1, col: 1 });
+      expect(pattern!.solution[1]).toEqual({ row: 1, col: 1 });
+      expect(pattern!.solution[2]).toEqual({ row: 2, col: 2 });
       
-      // Check varied color pattern
+      // Check initial grid pattern
       const grid = pattern!.initialGrid;
-      expect(grid[0][0]).toBe(1);
-      expect(grid[0][2]).toBe(1);
-      expect(grid[1][1]).toBe(2);
-      expect(grid[2][0]).toBe(1);
-      expect(grid[2][2]).toBe(1);
+      expect(grid).toEqual([
+        [2, 1, 0],
+        [1, 2, 1],
+        [0, 1, 2]
+      ]);
     });
     
     it('should return null for non-tutorial levels', () => {
@@ -100,14 +97,49 @@ describe('Tutorial Patterns', () => {
   
   describe('getTutorialCompleteMessage', () => {
     it('should return correct messages for tutorial levels', () => {
-      expect(getTutorialCompleteMessage(1)).toBe('Great! Basics learned!');
-      expect(getTutorialCompleteMessage(2)).toBe('Nice! + pattern mastered!');
-      expect(getTutorialCompleteMessage(3)).toBe('Perfect! Ready to play!');
+      expect(getTutorialCompleteMessage(1)).toBe('1/3');
+      expect(getTutorialCompleteMessage(2)).toBe('2/3');
+      expect(getTutorialCompleteMessage(3)).toBe('3/3');
     });
     
     it('should return empty string for non-tutorial levels', () => {
       expect(getTutorialCompleteMessage(4)).toBe('');
       expect(getTutorialCompleteMessage(10)).toBe('');
+    });
+  });
+  
+  describe('Solution Verification', () => {
+    it('should solve level 1 with exactly 1 tap', () => {
+      const pattern = getTutorialPattern(1)!;
+      let grid = [...pattern.initialGrid.map(row => [...row])];
+      
+      // Apply the single tap
+      grid = applyClick(grid, 1, 1, 3, false, new Map());
+      
+      expect(grid).toEqual(pattern.targetGrid);
+    });
+    
+    it('should solve level 2 with exactly 2 taps', () => {
+      const pattern = getTutorialPattern(2)!;
+      let grid = [...pattern.initialGrid.map(row => [...row])];
+      
+      // Apply the two taps in order
+      grid = applyClick(grid, 0, 0, 3, false, new Map());
+      grid = applyClick(grid, 1, 1, 3, false, new Map());
+      
+      expect(grid).toEqual(pattern.targetGrid);
+    });
+    
+    it('should solve level 3 with exactly 3 taps', () => {
+      const pattern = getTutorialPattern(3)!;
+      let grid = [...pattern.initialGrid.map(row => [...row])];
+      
+      // Apply the three taps in order
+      grid = applyClick(grid, 0, 0, 3, false, new Map());
+      grid = applyClick(grid, 1, 1, 3, false, new Map());
+      grid = applyClick(grid, 2, 2, 3, false, new Map());
+      
+      expect(grid).toEqual(pattern.targetGrid);
     });
   });
 });
