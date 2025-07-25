@@ -58,9 +58,9 @@ describe('Header', () => {
   });
 
   it('has correct styling classes', () => {
-    render(<Header />);
-    const header = screen.getByRole('banner');
-    expect(header).toHaveClass('fixed', 'top-0', 'left-0', 'right-0', 'z-50');
+    const { container } = render(<Header />);
+    const header = container.querySelector('header');
+    expect(header).toHaveClass('bg-black/20', 'backdrop-blur-sm');
   });
 
   it('button has hover effects', () => {

@@ -21,7 +21,7 @@ describe('PageShell', () => {
       </PageShell>
     );
     const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper).toHaveClass('min-h-screen', 'flex', 'flex-col', 'bg-gradient-to-br');
+    expect(wrapper).toHaveClass('flex-1', 'flex', 'flex-col', 'overflow-hidden');
   });
 
   it('creates proper layout structure', () => {
@@ -36,10 +36,10 @@ describe('PageShell', () => {
     expect(outerDiv).toHaveClass('overflow-hidden');
     
     const innerWrapper = outerDiv.firstChild as HTMLElement;
-    expect(innerWrapper).toHaveClass('w-full', 'min-h-screen', 'flex', 'flex-col');
+    expect(innerWrapper).toHaveClass('w-full', 'flex-1', 'flex', 'flex-col');
     
     const contentWrapper = innerWrapper.firstChild as HTMLElement;
-    expect(contentWrapper).toHaveClass('flex-1', 'p-2', 'sm:p-4', 'pt-10', 'sm:pt-12');
+    expect(contentWrapper).toHaveClass('flex-1', 'p-2', 'sm:p-4');
   });
 
   it('applies max width constraint', () => {
