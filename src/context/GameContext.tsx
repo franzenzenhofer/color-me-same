@@ -25,6 +25,7 @@ import { applyClick } from '../utils/gridV2';
 import { log } from '../utils/logger';
 import { getLevelConfig } from '../utils/levelConfig';
 import { saveManager } from '../services/SaveManager';
+import { ConstraintManager } from '../services/ConstraintManager';
 
 /**
  * Complete game state interface
@@ -92,6 +93,16 @@ interface GameState {
   completedLevels: number[];
   /** Whether a saved game was loaded */
   saveLoaded: boolean;
+  
+  // === Constraints ===
+  /** Move limit for current level (if any) */
+  moveLimit?: number;
+  /** Time limit in seconds (if any) */
+  timeLimit?: number;
+  /** Time bonus thresholds */
+  timeBonus?: { under60s: number; under120s: number };
+  /** Whether timer should be visible */
+  showTimer: boolean;
   
   // === UI State ===
   /** Whether to show tutorial modal */
@@ -166,6 +177,7 @@ const initial: GameState = {
   levelPoints: 0,
   completedLevels: [],
   saveLoaded: false,
+  showTimer: false,
 };
 
 interface GameContextType {
@@ -217,6 +229,16 @@ function reducer(state: GameState, action: Action): GameState {
       // Get max undos based on level progression
       const maxUndos = level <= 10 ? -1 : level <= 30 ? 10 : Math.max(1, 15 - Math.floor(level / 10));
       
+      // Get constraints for this level
+      const constraintManager = ConstraintManager.getInstance();
+      const constraints = constraintManager.getConstraintsForLevel(level, optimalPath.length);
+      
+      // Show tutorial toast if new constraint introduced
+      if (constraints.tutorialMessage) {
+        // This will be handled by a toast after state update
+        log('info', 'New constraint tutorial', { level, message: constraints.tutorialMessage });
+      }
+      
       return {
         ...state,
         level,
@@ -242,7 +264,11 @@ function reducer(state: GameState, action: Action): GameState {
         hintsEnabled: showHints, // Enable hints on tutorial levels
         undoHistory: [], // Reset undo history
         undoCount: 0,
-        maxUndos,
+        maxUndos: constraints.undoLimit ?? maxUndos,
+        moveLimit: constraints.moveLimit,
+        timeLimit: constraints.timeLimit,
+        timeBonus: constraints.timeBonus,
+        showTimer: constraints.showTimer,
       };
     }
 
@@ -250,6 +276,13 @@ function reducer(state: GameState, action: Action): GameState {
       const { row, col } = action;
       if (state.won || state.paused) return state;
       if (state.locked.has(`${row}-${col}`) && state.locked.get(`${row}-${col}`)! > 0) return state;
+      
+      // Check move limit
+      if (state.moveLimit && state.moves >= state.moveLimit) {
+        log('info', 'Move limit reached', { moves: state.moves, limit: state.moveLimit });
+        // Could dispatch a GAME_OVER action here
+        return state;
+      }
 
       const isPower = state.power.has(`${row}-${col}`);
       // Get colors from level configuration
@@ -323,11 +356,10 @@ function reducer(state: GameState, action: Action): GameState {
     case 'TICK': {
       if (state.paused || state.won) return state;
       const newTime = state.time + 1;
-      // Time limit will be determined by level progression
-      const timeLimit = 0; // No time limits for now
       
-      // Check time limit
-      if (timeLimit > 0 && newTime >= timeLimit) {
+      // Check time limit from constraints
+      if (state.timeLimit && newTime >= state.timeLimit) {
+        log('info', 'Time limit reached', { time: newTime, limit: state.timeLimit });
         return { ...state, time: newTime, won: false, paused: true, showVictory: true };
       }
       

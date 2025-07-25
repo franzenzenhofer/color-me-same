@@ -26,6 +26,7 @@ import { motion } from 'framer-motion';
 import { getLevelConfig } from '../../utils/levelConfig';
 import { useToast } from '../../context/ToastContext';
 import { useTutorialToasts } from '../../hooks/useTutorialToasts';
+import { useConstraintTutorials } from '../../hooks/useConstraintTutorials';
 
 /**
  * GameBoard Component - Renders the interactive puzzle grid
@@ -71,6 +72,9 @@ const GameBoard: React.FC = () => {
   
   // Tutorial toast messages
   useTutorialToasts();
+  
+  // Constraint tutorial messages
+  useConstraintTutorials();
   
   // Show victory modal after delay when puzzle is solved
   useEffect(() => {

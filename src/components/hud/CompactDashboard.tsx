@@ -17,7 +17,10 @@ const CompactDashboard: React.FC = () => {
     optimalPath,
     streak,
     hintsEnabled,
-    paused
+    paused,
+    moveLimit,
+    timeLimit,
+    showTimer
   } = state;
   
   const [showPointGain, setShowPointGain] = useState(false);
@@ -76,17 +79,22 @@ const CompactDashboard: React.FC = () => {
         {/* Moves */}
         <div className="flex items-center gap-1">
           <Target size={14} className="opacity-70" />
-          <span className="font-medium">
+          <span className={`font-medium ${moveLimit && moves > moveLimit * 0.8 ? 'text-yellow-400' : ''}`}>
             {moves}
-            <span className="opacity-60 text-xs">/{optimalMoves}</span>
+            <span className="opacity-60 text-xs">/{moveLimit || optimalMoves}</span>
           </span>
         </div>
         
-        {/* Time */}
-        <div className="flex items-center gap-1">
-          <Timer size={14} className="opacity-70" />
-          <span className="font-medium">{formatTime(time)}</span>
-        </div>
+        {/* Time - only show if enabled */}
+        {showTimer && (
+          <div className="flex items-center gap-1">
+            <Timer size={14} className="opacity-70" />
+            <span className={`font-medium ${timeLimit && time > timeLimit * 0.8 ? 'text-yellow-400' : ''}`}>
+              {formatTime(time)}
+              {timeLimit && <span className="opacity-60 text-xs">/{formatTime(timeLimit)}</span>}
+            </span>
+          </div>
+        )}
         
         {/* Points with animation */}
         <div className="flex items-center gap-1 relative">
