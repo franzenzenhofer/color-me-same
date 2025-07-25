@@ -6,6 +6,7 @@ import { DIFFICULTIES } from '../../constants/gameConfig';
 import { motion } from 'framer-motion';
 import { Play, RotateCcw, Trophy, TrendingUp, Target } from 'lucide-react';
 import { formatPoints } from '../../utils/scoring';
+import { MilestoneProgress } from '../ui/MilestoneProgress';
 
 const StartScreen: React.FC = () => {
   const { state, dispatch } = useGame();
@@ -213,6 +214,11 @@ const StartScreen: React.FC = () => {
         >
           Starting at Level 1 • 3×3 Grid • 1 Move
         </motion.p>
+      )}
+      
+      {/* Milestone Progress */}
+      {savedGameExists && (
+        <MilestoneProgress className="mb-6" />
       )}
       
       {/* New game confirmation */}

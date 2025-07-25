@@ -28,6 +28,7 @@ import { useToast } from '../../context/ToastContext';
 import { useTutorialToasts } from '../../hooks/useTutorialToasts';
 import { useConstraintTutorials } from '../../hooks/useConstraintTutorials';
 import { useSolvabilityGuarantee } from '../../hooks/useSolvabilityGuarantee';
+import { useMilestones } from '../../hooks/useMilestones';
 
 /**
  * GameBoard Component - Renders the interactive puzzle grid
@@ -79,6 +80,9 @@ const GameBoard: React.FC = () => {
   
   // Solvability guarantee system
   const { getRecoveryOptions } = useSolvabilityGuarantee();
+  
+  // Milestone tracking
+  useMilestones();
   
   // Show victory modal after delay when puzzle is solved
   useEffect(() => {
