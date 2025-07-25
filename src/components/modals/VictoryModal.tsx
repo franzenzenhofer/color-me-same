@@ -82,7 +82,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
               </motion.div>
               
               <h2 className="text-2xl font-bold text-green-600 mb-2">
-                {isTutorialLevel(level) ? '✓' : '✓'}
+                {isTutorialLevel(level) ? 'Tutorial Done!' : 'Level Complete!'}
               </h2>
               
               {isTutorialLevel(level) && (
@@ -110,7 +110,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
               
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-center gap-2">
-                  <span>{moves}/{optimalPath.length}</span>
+                  <span>Moves: {moves}/{optimalPath.length}</span>
                 </div>
                 
                 {/* Score breakdown */}
@@ -176,7 +176,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
               </div>
               
               <p className="text-sm text-gray-600 mb-2">
-                {efficiency}%
+                Efficiency: {efficiency}%
               </p>
               
               {/* Show milestone message for next level */}
