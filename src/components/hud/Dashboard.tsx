@@ -34,7 +34,6 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-4 gap-1 text-white">
         <Stat
           icon={<Target size={18} />}
-          label={`L${level}`}
           value={moves}
           subValue={level} // Shows required moves for the level
         />
