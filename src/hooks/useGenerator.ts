@@ -19,6 +19,7 @@ import { Difficulty } from '../constants/gameConfig';
 import { log } from '../utils/logger';
 import { applyReverseClick } from '../utils/gridV2';
 import { getLevelConfig, LevelConfig } from '../utils/levelConfig';
+import { getTutorialPattern, isTutorialLevel } from '../utils/tutorialPatterns';
 
 /**
  * Result of puzzle generation containing all game state data
@@ -240,6 +241,26 @@ export const useGenerator = () => {
    * const puzzle = await generate(DIFFICULTIES.easy, 15); // Level 15 = Medium 6x6
    */
   const generate = useCallback(async (_conf: Difficulty, level: number = 1): Promise<GenerationResult> => {
+    // Check if this is a tutorial level with hardcoded pattern
+    if (isTutorialLevel(level)) {
+      const tutorialPattern = getTutorialPattern(level);
+      if (tutorialPattern) {
+        log('info', 'Using tutorial pattern for level', { level });
+        
+        // Convert tutorial pattern to GenerationResult format
+        return {
+          grid: tutorialPattern.initialGrid,
+          solved: tutorialPattern.targetGrid,
+          power: new Set<string>(), // No power tiles in tutorials
+          locked: new Map<string, number>(), // No locked tiles in tutorials
+          solution: tutorialPattern.solution,
+          reverse: [...tutorialPattern.solution].reverse(),
+          optimalPath: tutorialPattern.solution,
+          playerMoves: []
+        };
+      }
+    }
+    
     // Get configuration for this level
     const config = getLevelConfig(level);
     

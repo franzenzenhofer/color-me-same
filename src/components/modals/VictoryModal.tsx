@@ -6,6 +6,7 @@ import { useGenerator } from '../../hooks/useGenerator';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { getLevelMilestoneDescription } from '../../utils/levelConfig';
 import { calculateLevelScore, formatPoints } from '../../utils/scoring';
+import { getTutorialCompleteMessage, isTutorialLevel } from '../../utils/tutorialPatterns';
 
 interface VictoryModalProps {
   onShowAchievements?: (achievements: string[]) => void;
@@ -83,8 +84,14 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
               </motion.div>
               
               <h2 className="text-2xl font-bold text-green-600 mb-2">
-                Puzzle Solved!
+                {isTutorialLevel(level) ? 'Tutorial Complete!' : 'Puzzle Solved!'}
               </h2>
+              
+              {isTutorialLevel(level) && (
+                <p className="text-gray-600 mb-2">
+                  {getTutorialCompleteMessage(level)}
+                </p>
+              )}
               
               <div className="flex justify-center gap-1 mb-2">
                 {[...Array(3)].map((_, i) => (
