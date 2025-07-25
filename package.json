@@ -1,6 +1,6 @@
 {
   "name": "color-me-same",
-  "version": "1.37.1",
+  "version": "1.36.2",
   "description": "A challenging puzzle game where you make all tiles the same color - Cloudflare Worker edition",
   "type": "module",
   "scripts": {
