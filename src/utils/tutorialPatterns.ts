@@ -27,14 +27,15 @@ export interface TutorialPattern {
 export function getTutorialPattern(level: number): TutorialPattern | null {
   switch (level) {
     case 1:
-      // Level 1: REVERSE GENERATED - Start from solved (all 0s), apply 1 click at center
-      // Reverse: [0,0,0; 0,0,0; 0,0,0] + click(1,1) = [0,1,0; 1,1,1; 0,1,0]
+      // Level 1: For 3 colors (0,1,2), tiles need to be at 2 to reach 0 with one click
+      // Pattern: all tiles that will be affected by center click are at value 2
+      // When clicked: 2 + 1 = 0 (mod 3)
       return {
         level: 1,
         initialGrid: [
-          [0, 1, 0],
-          [1, 1, 1],
-          [0, 1, 0]
+          [0, 2, 0],
+          [2, 2, 2],
+          [0, 2, 0]
         ],
         targetGrid: [
           [0, 0, 0],
@@ -46,15 +47,15 @@ export function getTutorialPattern(level: number): TutorialPattern | null {
       };
       
     case 2:
-      // Level 2: REVERSE GENERATED - Start from solved, apply 2 clicks
-      // Reverse: [0,0,0; 0,0,0; 0,0,0] + click(0,1) + click(1,1) = specific pattern
-      // After click(0,1): [1,1,1; 0,1,0; 0,0,0]
-      // After click(1,1): [1,0,1; 1,1,1; 0,1,0]
+      // Level 2: Calculated by applying 2 clicks from solved state
+      // Step 1: All zeros + click(0,1) = [1,1,1; 0,1,0; 0,0,0]
+      // Step 2: That + click(1,1) = [1,2,1; 1,2,1; 0,1,0]
+      // This is our initial pattern that solves in exactly 2 taps
       return {
         level: 2,
         initialGrid: [
-          [1, 0, 1],
-          [1, 1, 1],
+          [1, 2, 1],
+          [1, 2, 1],
           [0, 1, 0]
         ],
         targetGrid: [
@@ -70,13 +71,16 @@ export function getTutorialPattern(level: number): TutorialPattern | null {
       };
       
     case 3:
-      // Level 3: REVERSE GENERATED - Start from solved, apply 3 clicks  
-      // Reverse: [0,0,0; 0,0,0; 0,0,0] + click(0,0) + click(0,2) + click(2,1) = specific pattern
+      // Level 3: Calculated by applying 3 clicks from solved state
+      // Step 1: [0,0,0; 0,0,0; 0,0,0] + click(0,0) = [1,1,0; 1,0,0; 0,0,0]
+      // Step 2: That + click(0,2) = [1,1,1; 1,0,1; 0,0,0]  
+      // Step 3: That + click(2,1) = [1,1,1; 1,1,1; 1,1,1]
+      // This is our initial pattern that solves in exactly 3 taps
       return {
         level: 3,
         initialGrid: [
           [1, 1, 1],
-          [1, 0, 1],
+          [1, 1, 1],
           [1, 1, 1]
         ],
         targetGrid: [
