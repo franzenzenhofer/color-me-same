@@ -55,9 +55,9 @@ const Toast: React.FC<ToastProps> = ({
             damping: 25,
             mass: 0.5
           }}
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 
+          className={`fixed top-2 left-2 right-2 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 z-50 
                      ${styles[type]} rounded-xl shadow-2xl backdrop-blur-sm
-                     px-5 py-4 flex items-center gap-4 min-w-[320px] max-w-md
+                     px-4 py-3 flex items-center gap-3 sm:min-w-[320px] sm:max-w-md
                      border border-white/20`}
         >
           <div className="p-1.5 bg-white/20 rounded-lg">

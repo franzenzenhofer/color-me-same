@@ -21,7 +21,7 @@ import React, { useState } from 'react';
 import { GameProvider } from './context/GameContext';
 import PageShell from './components/layout/PageShell';
 import GameBoard from './components/board/GameBoard';
-import EnhancedDashboard from './components/hud/EnhancedDashboard';
+import CompactDashboard from './components/hud/CompactDashboard';
 import PowerUps from './components/hud/PowerUps';
 import ColorCycleInfo from './components/hud/ColorCycleInfo';
 import VictoryModal from './components/modals/VictoryModal';
@@ -71,7 +71,7 @@ const App: React.FC = () => {
             <Header />
             <PageShell>
               <StartScreen />
-              <EnhancedDashboard />
+              <CompactDashboard />
               <PowerUps />
               <GameBoard />
               <ColorCycleInfo />

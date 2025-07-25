@@ -45,16 +45,19 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
   };
 
   const handleContinue = async () => {
-    // Progress to next level
-    dispatch({ type: 'NEXT_LEVEL' });
-    
-    // Generate new game for next level
-    const nextLevel = level + 1;
-    const result = await generate(DIFFICULTIES.easy, nextLevel); // Dummy config, will be replaced
-    dispatch({ 
-      type: 'NEW_GAME', 
-      payload: { ...result, level: nextLevel } 
-    });
+    try {
+      // Generate new game for next level
+      const nextLevel = level + 1;
+      const result = await generate(DIFFICULTIES.easy, nextLevel);
+      
+      // Start new game with next level
+      dispatch({ 
+        type: 'NEW_GAME', 
+        payload: { ...result, level: nextLevel } 
+      });
+    } catch (error) {
+      console.error('Failed to generate next level:', error);
+    }
   };
 
   return (
