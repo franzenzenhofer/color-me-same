@@ -25,7 +25,7 @@ export const useTutorialToasts = () => {
   useEffect(() => {
     if (level === 1 && started && playerMoves.length === 0 && !won) {
       setTimeout(() => {
-        showTutorialMessage('level1-start', 'Welcome! Tap the center tile to complete Level 1', 5000);
+        showTutorialMessage('level1-start', 'Tap center', 3000);
       }, 1000);
     }
   }, [level, started, playerMoves.length, won, showTutorialMessage]);
@@ -34,7 +34,7 @@ export const useTutorialToasts = () => {
   useEffect(() => {
     if (level === 2 && started && playerMoves.length === 0 && !won) {
       setTimeout(() => {
-        showTutorialMessage('level2-start', 'Each tap changes tiles in a + pattern. Try it!', 5000);
+        showTutorialMessage('level2-start', 'Tap = + pattern', 3000);
       }, 1000);
     }
   }, [level, started, playerMoves.length, won, showTutorialMessage]);
@@ -43,7 +43,7 @@ export const useTutorialToasts = () => {
   useEffect(() => {
     if (level === 3 && started && playerMoves.length === 0 && !won) {
       setTimeout(() => {
-        showTutorialMessage('level3-start', 'Colors cycle: Red → Green → Blue → Red', 5000);
+        showTutorialMessage('level3-start', 'Colors cycle 0→1→2→0', 3000);
       }, 1000);
     }
   }, [level, started, playerMoves.length, won, showTutorialMessage]);
@@ -53,11 +53,11 @@ export const useTutorialToasts = () => {
     if (won && level <= 3) {
       setTimeout(() => {
         const messages = {
-          1: 'Perfect! You completed your first puzzle!',
-          2: 'Great job! You understand the cross pattern!',
-          3: 'Excellent! You\'ve mastered the basics!'
+          1: 'Nice!',
+          2: 'Great!',
+          3: 'Perfect!'
         };
-        showTutorialMessage(`level${level}-win`, messages[level as 1 | 2 | 3], 4000);
+        showTutorialMessage(`level${level}-win`, messages[level as 1 | 2 | 3], 2000);
       }, 500);
     }
   }, [won, level, showTutorialMessage]);

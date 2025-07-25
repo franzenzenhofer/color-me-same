@@ -37,7 +37,7 @@ describe('Tutorial Patterns', () => {
       const grid = pattern!.initialGrid;
       expect(grid[0][1]).toBe(1); // Top
       expect(grid[1][0]).toBe(1); // Left
-      expect(grid[1][1]).toBe(2); // Center
+      expect(grid[1][1]).toBe(0); // Center
       expect(grid[1][2]).toBe(1); // Right
       expect(grid[2][1]).toBe(1); // Bottom
     });
@@ -48,13 +48,16 @@ describe('Tutorial Patterns', () => {
       expect(pattern).toBeTruthy();
       expect(pattern!.level).toBe(3);
       expect(pattern!.solution).toHaveLength(3);
+      expect(pattern!.solution[0]).toEqual({ row: 0, col: 0 });
+      expect(pattern!.solution[1]).toEqual({ row: 0, col: 2 });
+      expect(pattern!.solution[2]).toEqual({ row: 1, col: 1 });
       
       // Check varied color pattern
       const grid = pattern!.initialGrid;
       expect(grid[0][0]).toBe(1);
-      expect(grid[0][2]).toBe(2);
-      expect(grid[1][1]).toBe(1);
-      expect(grid[2][0]).toBe(2);
+      expect(grid[0][2]).toBe(1);
+      expect(grid[1][1]).toBe(2);
+      expect(grid[2][0]).toBe(1);
       expect(grid[2][2]).toBe(1);
     });
     
@@ -97,9 +100,9 @@ describe('Tutorial Patterns', () => {
   
   describe('getTutorialCompleteMessage', () => {
     it('should return correct messages for tutorial levels', () => {
-      expect(getTutorialCompleteMessage(1)).toContain('basics');
-      expect(getTutorialCompleteMessage(2)).toContain('cross pattern');
-      expect(getTutorialCompleteMessage(3)).toContain('color cycling');
+      expect(getTutorialCompleteMessage(1)).toBe('Great! Basics learned!');
+      expect(getTutorialCompleteMessage(2)).toBe('Nice! + pattern mastered!');
+      expect(getTutorialCompleteMessage(3)).toBe('Perfect! Ready to play!');
     });
     
     it('should return empty string for non-tutorial levels', () => {

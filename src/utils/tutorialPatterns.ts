@@ -27,7 +27,7 @@ export interface TutorialPattern {
 export function getTutorialPattern(level: number): TutorialPattern | null {
   switch (level) {
     case 1:
-      // Level 1: Just tap the center tile
+      // Level 1: Exactly 1 tap in the center
       return {
         level: 1,
         initialGrid: [
@@ -41,16 +41,16 @@ export function getTutorialPattern(level: number): TutorialPattern | null {
           [0, 0, 0]
         ],
         solution: [{ row: 1, col: 1 }],
-        message: "Welcome! Tap the center tile to make all tiles match!"
+        message: "Tap center"
       };
       
     case 2:
-      // Level 2: Two strategic moves to teach the cross pattern
+      // Level 2: Exactly 2 taps to learn + pattern
       return {
         level: 2,
         initialGrid: [
           [0, 1, 0],
-          [1, 2, 1],
+          [1, 0, 1],
           [0, 1, 0]
         ],
         targetGrid: [
@@ -60,19 +60,19 @@ export function getTutorialPattern(level: number): TutorialPattern | null {
         ],
         solution: [
           { row: 1, col: 1 }, // Center changes the cross
-          { row: 0, col: 1 }  // Top middle to finish
+          { row: 0, col: 1 }  // Top to finish
         ],
-        message: "Each tap changes tiles in a + pattern. Follow the hints!"
+        message: "Each tap = + pattern"
       };
       
     case 3:
-      // Level 3: Three moves, introducing color cycling
+      // Level 3: Exactly 3 taps to learn color cycling
       return {
         level: 3,
         initialGrid: [
-          [1, 0, 2],
-          [0, 1, 0],
-          [2, 0, 1]
+          [1, 0, 1],
+          [0, 2, 0],
+          [1, 0, 1]
         ],
         targetGrid: [
           [0, 0, 0],
@@ -80,11 +80,11 @@ export function getTutorialPattern(level: number): TutorialPattern | null {
           [0, 0, 0]
         ],
         solution: [
-          { row: 0, col: 0 }, // Top-left corner
-          { row: 2, col: 2 }, // Bottom-right corner
+          { row: 0, col: 0 }, // Top-left
+          { row: 0, col: 2 }, // Top-right  
           { row: 1, col: 1 }  // Center to finish
         ],
-        message: "Colors cycle: Red → Green → Blue → Red. Try solving without hints!"
+        message: "Colors cycle 0→1→2→0"
       };
       
     default:
@@ -111,11 +111,11 @@ export function isTutorialLevel(level: number): boolean {
 export function getTutorialCompleteMessage(level: number): string {
   switch (level) {
     case 1:
-      return "Perfect! You've learned the basics. Tiles change when you tap them!";
+      return "Great! Basics learned!";
     case 2:
-      return "Excellent! You understand the cross pattern. Each tap affects 5 tiles!";
+      return "Nice! + pattern mastered!";
     case 3:
-      return "Amazing! You've mastered color cycling. You're ready for real challenges!";
+      return "Perfect! Ready to play!";
     default:
       return "";
   }
