@@ -4,21 +4,35 @@ import { useGenerator } from '../../hooks/useGenerator';
 import { useSaveGame } from '../../hooks/useSaveGame';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { motion } from 'framer-motion';
-import { Play, RotateCcw } from 'lucide-react';
+import { Play, RotateCcw, Trophy, TrendingUp, Target } from 'lucide-react';
+import { formatPoints } from '../../utils/scoring';
 
 const StartScreen: React.FC = () => {
   const { state, dispatch } = useGame();
   const { generate } = useGenerator();
   const { hasSave, clearSave, currentLevel, totalPoints, completedLevels } = useSaveGame();
   const [loading, setLoading] = useState(false);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
 
   if (state.started) return null;
   
   const savedGameExists = hasSave();
 
   const handleNewGame = async () => {
+    // If save exists, confirm overwrite
+    if (savedGameExists && !showNewGameConfirm) {
+      setShowNewGameConfirm(true);
+      return;
+    }
+    
     setLoading(true);
+    setShowNewGameConfirm(false);
+    
+    // Clear existing save if any
+    if (savedGameExists) {
+      await clearSave();
+    }
+    
     try {
       // Always start at level 1 for new games
       const startingLevel = 1;
@@ -50,9 +64,24 @@ const StartScreen: React.FC = () => {
     }
   };
   
-  const handleClearSave = async () => {
-    await clearSave();
-    setShowClearConfirm(false);
+  // Calculate best streak from completed levels
+  const calculateBestStreak = () => {
+    if (completedLevels.length === 0) return 0;
+    
+    const sorted = [...completedLevels].sort((a, b) => a - b);
+    let maxStreak = 1;
+    let currentStreak = 1;
+    
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === sorted[i - 1] + 1) {
+        currentStreak++;
+        maxStreak = Math.max(maxStreak, currentStreak);
+      } else {
+        currentStreak = 1;
+      }
+    }
+    
+    return maxStreak;
   };
 
   return (
@@ -72,97 +101,158 @@ const StartScreen: React.FC = () => {
           Color Me Same
         </motion.h1>
         
-        <p className="text-lg text-white/80">
-          Transform the grid into a single color!
-        </p>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-lg text-white/80"
+        >
+          Make all tiles match!
+        </motion.p>
       </div>
 
       {/* Game buttons */}
-      <div className="flex flex-col gap-3 items-center mb-4">
+      <div className="flex flex-col gap-4 items-center mb-6 w-full max-w-sm mx-auto">
         {savedGameExists && (
-          <>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="w-full"
+          >
+            <button
               onClick={handleContinue}
               disabled={loading}
-              className="btn-primary text-lg px-8 py-3 flex items-center gap-3"
+              className="btn-primary text-lg px-8 py-4 flex flex-col items-center gap-1 w-full
+                         hover:scale-105 active:scale-95 transition-transform"
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
                   <span>Loading...</span>
                 </>
               ) : (
                 <>
-                  <Play size={20} />
-                  <span>Continue Level {currentLevel}</span>
+                  <div className="flex items-center gap-2">
+                    <Play size={24} />
+                    <span className="font-bold text-xl">CONTINUE</span>
+                  </div>
+                  <span className="text-sm opacity-90">
+                    Level {currentLevel} • {formatPoints(totalPoints)}
+                  </span>
                 </>
               )}
-            </motion.button>
-            
-            <div className="text-sm text-white/70">
-              {totalPoints.toLocaleString()} points • {completedLevels.length} levels completed
-            </div>
-          </>
+            </button>
+          </motion.div>
         )}
         
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleNewGame}
-          disabled={loading}
-          className={`${savedGameExists ? 'btn-secondary' : 'btn-primary'} text-lg px-8 py-3 flex items-center gap-3`}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: savedGameExists ? 0.4 : 0.3 }}
+          className="w-full"
         >
-          {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
-              <span>Generating...</span>
-            </>
-          ) : (
-            <>
-              <RotateCcw size={20} />
-              <span>New Game</span>
-            </>
-          )}
-        </motion.button>
+          <button
+            onClick={handleNewGame}
+            disabled={loading}
+            className={`${savedGameExists ? 'btn-secondary' : 'btn-primary'} 
+                       text-lg px-8 py-4 flex items-center justify-center gap-2 w-full
+                       hover:scale-105 active:scale-95 transition-transform`}
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <RotateCcw size={20} />
+                <span className="font-bold">NEW GAME</span>
+              </>
+            )}
+          </button>
+        </motion.div>
       </div>
 
-      {/* Starting level info */}
-      {!savedGameExists && (
-        <p className="text-white/60 text-sm mb-4">
+      {/* Statistics or starting info */}
+      {savedGameExists ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="grid grid-cols-3 gap-4 mb-6 text-white/80"
+        >
+          <div className="text-center">
+            <div className="flex justify-center mb-1">
+              <Target size={20} className="opacity-60" />
+            </div>
+            <div className="text-lg font-semibold">{completedLevels.length}</div>
+            <div className="text-xs opacity-70">Completed</div>
+          </div>
+          <div className="text-center">
+            <div className="flex justify-center mb-1">
+              <Trophy size={20} className="opacity-60" />
+            </div>
+            <div className="text-lg font-semibold">{formatPoints(totalPoints)}</div>
+            <div className="text-xs opacity-70">Total Points</div>
+          </div>
+          <div className="text-center">
+            <div className="flex justify-center mb-1">
+              <TrendingUp size={20} className="opacity-60" />
+            </div>
+            <div className="text-lg font-semibold">{calculateBestStreak()}</div>
+            <div className="text-xs opacity-70">Best Streak</div>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-white/60 text-sm mb-6"
+        >
           Starting at Level 1 • 3×3 Grid • 1 Move
-        </p>
+        </motion.p>
       )}
       
-      {/* Clear save option */}
-      {savedGameExists && (
-        <div className="mt-8">
-          {showClearConfirm ? (
-            <div className="flex items-center gap-3 justify-center">
-              <span className="text-white/70 text-sm">Clear all progress?</span>
+      {/* New game confirmation */}
+      {showNewGameConfirm && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setShowNewGameConfirm(false)}
+        >
+          <motion.div
+            initial={{ y: 20 }}
+            animate={{ y: 0 }}
+            className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
+              Start New Game?
+            </h3>
+            <p className="text-gray-600 mb-4">
+              This will erase your current progress at Level {currentLevel}.
+            </p>
+            <div className="flex gap-3">
               <button
-                onClick={handleClearSave}
-                className="text-red-400 hover:text-red-300 text-sm font-medium"
+                onClick={handleNewGame}
+                className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg 
+                         hover:bg-red-600 transition-colors font-medium"
               >
-                Yes, Clear
+                Yes, Start Over
               </button>
               <button
-                onClick={() => setShowClearConfirm(false)}
-                className="text-white/70 hover:text-white text-sm font-medium"
+                onClick={() => setShowNewGameConfirm(false)}
+                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg 
+                         hover:bg-gray-300 transition-colors font-medium"
               >
                 Cancel
               </button>
             </div>
-          ) : (
-            <button
-              onClick={() => setShowClearConfirm(true)}
-              className="text-white/50 hover:text-white/70 text-sm"
-            >
-              Clear Progress
-            </button>
-          )}
-        </div>
+          </motion.div>
+        </motion.div>
       )}
     </motion.div>
   );
