@@ -128,7 +128,7 @@ const GameBoard: React.FC = () => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="relative flex flex-col items-center justify-center flex-1 py-2 -mx-2 px-2 sm:mx-0 sm:px-0"
+      className="relative flex flex-col items-center justify-center flex-1 py-2 overflow-hidden"
     >
       <div
         className="grid gap-1 bg-black/20 backdrop-blur-sm rounded-xl p-2 w-full"
