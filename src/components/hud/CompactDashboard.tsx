@@ -35,7 +35,7 @@ const CompactDashboard: React.FC = () => {
       setShowPointGain(true);
       setPrevPoints(totalPoints);
       
-      const timer = setTimeout(() => setShowPointGain(false), 2000);
+      const timer = setTimeout(() => setShowPointGain(false), 1500);
       return () => clearTimeout(timer);
     } else if (prevPoints === 0 || totalPoints < prevPoints) {
       // Reset when starting new game or points decrease
@@ -121,10 +121,14 @@ const CompactDashboard: React.FC = () => {
           <AnimatePresence>
             {showPointGain && (
               <motion.div
-                initial={{ opacity: 0, y: 0 }}
-                animate={{ opacity: 1, y: -10 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="absolute -top-4 left-0 text-xs text-green-400 font-bold pointer-events-none whitespace-nowrap"
+                initial={{ opacity: 0, y: 0, scale: 0.8 }}
+                animate={{ opacity: 1, y: -15, scale: 1 }}
+                exit={{ opacity: 0, y: -25, scale: 0.9 }}
+                transition={{ 
+                  duration: 0.3,
+                  ease: "easeInOut"
+                }}
+                className="absolute -top-4 left-0 text-xs text-green-400 font-bold pointer-events-none whitespace-nowrap z-50"
               >
                 +{formatPoints(lastGain)}
               </motion.div>
