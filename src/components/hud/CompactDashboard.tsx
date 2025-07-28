@@ -29,7 +29,7 @@ const CompactDashboard: React.FC = () => {
   
   // Track point gains for animation
   useEffect(() => {
-    if (totalPoints > prevPoints) {
+    if (totalPoints > prevPoints && prevPoints > 0) {
       const gain = totalPoints - prevPoints;
       setLastGain(gain);
       setShowPointGain(true);
@@ -37,6 +37,9 @@ const CompactDashboard: React.FC = () => {
       
       const timer = setTimeout(() => setShowPointGain(false), 2000);
       return () => clearTimeout(timer);
+    } else if (prevPoints === 0 || totalPoints < prevPoints) {
+      // Reset when starting new game or points decrease
+      setPrevPoints(totalPoints);
     }
   }, [totalPoints, prevPoints]);
 
