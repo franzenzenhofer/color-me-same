@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Timer, Target, Trophy, Zap } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { useTimer } from '../../hooks/useTimer';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { formatPoints } from '../../utils/scoring';
 
 const CompactDashboard: React.FC = () => {
@@ -23,25 +23,6 @@ const CompactDashboard: React.FC = () => {
     showTimer
   } = state;
   
-  const [showPointGain, setShowPointGain] = useState(false);
-  const [lastGain, setLastGain] = useState(0);
-  const [prevPoints, setPrevPoints] = useState(totalPoints);
-  
-  // Track point gains for animation
-  useEffect(() => {
-    if (totalPoints > prevPoints && prevPoints > 0) {
-      const gain = totalPoints - prevPoints;
-      setLastGain(gain);
-      setShowPointGain(true);
-      setPrevPoints(totalPoints);
-      
-      const timer = setTimeout(() => setShowPointGain(false), 1500);
-      return () => clearTimeout(timer);
-    } else if (prevPoints === 0 || totalPoints < prevPoints) {
-      // Reset when starting new game or points decrease
-      setPrevPoints(totalPoints);
-    }
-  }, [totalPoints, prevPoints]);
 
   // Global timer
   useTimer(started && !won && !paused, useCallback(() => {
@@ -102,12 +83,9 @@ const CompactDashboard: React.FC = () => {
         {/* Points with animation */}
         <div className="flex items-center gap-1 relative">
           <Trophy size={14} className="opacity-70" />
-          <motion.span 
-            className="font-medium"
-            animate={showPointGain ? { scale: [1, 1.2, 1] } : {}}
-          >
+          <span className="font-medium">
             {formatPoints(totalPoints)}
-          </motion.span>
+          </span>
           
           {/* Streak indicator */}
           {streak > 0 && !hintsEnabled && (
@@ -117,23 +95,6 @@ const CompactDashboard: React.FC = () => {
             </div>
           )}
           
-          {/* Point gain animation */}
-          <AnimatePresence>
-            {showPointGain && (
-              <motion.div
-                initial={{ opacity: 0, y: 0, scale: 0.8 }}
-                animate={{ opacity: 1, y: -15, scale: 1 }}
-                exit={{ opacity: 0, y: -25, scale: 0.9 }}
-                transition={{ 
-                  duration: 0.3,
-                  ease: "easeInOut"
-                }}
-                className="absolute -top-4 left-0 text-xs text-green-400 font-bold pointer-events-none whitespace-nowrap z-50"
-              >
-                +{formatPoints(lastGain)}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
     </motion.div>
