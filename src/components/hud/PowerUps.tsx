@@ -102,12 +102,12 @@ const PowerUpButton: React.FC<PowerUpButtonProps> = ({
     {icon}
     <span className="text-xs font-medium">{label}</span>
     {showUnlimited && (
-      <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold z-10">
+      <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold z-10">
         ∞
       </span>
     )}
     {count !== undefined && count > 0 && !showUnlimited && (
-      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold z-10">
+      <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold z-10">
         {count}
       </span>
     )}
