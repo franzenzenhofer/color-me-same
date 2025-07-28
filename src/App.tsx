@@ -68,7 +68,7 @@ const App: React.FC = () => {
     <GameProvider>
       <ToastProvider>
         <SaveGameLoader>
-          <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-x-hidden">
+          <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
             <Header />
             <PageShell>
               <StartScreen />

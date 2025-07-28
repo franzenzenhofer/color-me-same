@@ -128,18 +128,15 @@ const GameBoard: React.FC = () => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="relative flex flex-col items-center justify-center py-2 px-2"
+      className="w-full flex flex-col items-center py-2"
     >
       <div
-        className="grid gap-1 bg-black/20 backdrop-blur-sm rounded-xl p-2"
+        className="grid bg-black/20 backdrop-blur-sm rounded-xl p-3"
         style={{ 
-          gridTemplateColumns: `repeat(${grid.length}, 1fr)`,
-          gridAutoRows: '1fr',
-          aspectRatio: '1 / 1',
-          maxHeight: 'min(calc(100vh - 350px), 600px)',
-          maxWidth: 'min(calc(100vw - 2rem), 600px)',
-          width: '100%',
-          margin: '0 auto'
+          gridTemplateColumns: `repeat(${grid.length}, minmax(0, 1fr))`,
+          gap: '4px',
+          width: 'min(90vw, 500px)',
+          maxWidth: '500px'
         }}
       >
         {grid.map((row, r) =>
@@ -169,7 +166,8 @@ const GameBoard: React.FC = () => {
                     repeatType: "reverse"
                   } : {}
                 }}
-                className="w-full aspect-square"
+                className="relative w-full"
+                style={{ aspectRatio: '1' }}
               >
                 <Tile
                   value={cell}

@@ -20,7 +20,7 @@ const ColorCycleInfo: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-4 p-3 bg-black/20 backdrop-blur-sm rounded-lg w-full max-w-md mx-auto"
+      className="p-3 bg-black/20 backdrop-blur-sm rounded-lg max-w-md mx-auto"
     >
       <div className="flex items-center justify-center gap-1 mb-1">
         {colors.map((color, index) => (
