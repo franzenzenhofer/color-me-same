@@ -334,6 +334,16 @@ function reducer(state: GameState, action: Action): GameState {
         });
       }
 
+      /* FIX: Lock countdown decrement (commented out as locked tiles are disabled)
+      // Decrement all lock counters after each click
+      const nextLocked = new Map(state.locked);
+      nextLocked.forEach((v, k) => {
+        if (v > 0) {
+          nextLocked.set(k, v - 1);
+        }
+      });
+      */
+
       return {
         ...state,
         grid: nextGrid,
@@ -343,6 +353,7 @@ function reducer(state: GameState, action: Action): GameState {
         score,
         showVictory: false, // Don't show victory modal immediately
         undoHistory: newUndoHistory,
+        // locked: nextLocked, // FIX: Update locked state (commented out)
       };
     }
 

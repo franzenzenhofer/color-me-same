@@ -7,7 +7,8 @@
  * The mathematical foundation:
  * - Colors are represented as integers in Z_n (integers modulo n)
  * - Click operations are additions in this finite field
- * - Each operation is self-inverse: clicking the same pattern twice returns to original
+ * - For n=2: Each operation is self-inverse (clicking twice returns to original)
+ * - For n>2: Clicking n times returns to original (cyclic group property)
  * - This property ensures mathematical solvability
  * 
  * Key principles:

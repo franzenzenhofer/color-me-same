@@ -57,8 +57,18 @@ function influenceVector(n: number, r: number, c: number, isPower: boolean = fal
  * Cached for performance
  */
 function getInfluenceMatrix(n: number, powerTiles: Set<string> = new Set()): Matrix {
-  const cacheKey = n; // For now, cache by size only
+  /* FIX: Cache key should include power tile layout (commented out as power tiles are disabled)
+  // Create a deterministic key that includes power tile positions
+  const powerKeys = Array.from(powerTiles).sort().join(',');
+  const cacheKey = powerTiles.size === 0 ? n : `${n}:${powerKeys}`;
   
+  if (matrixCache.has(cacheKey)) {
+    return matrixCache.get(cacheKey)!;
+  }
+  */
+  
+  // Current implementation - cache by size only
+  const cacheKey = n;
   if (!powerTiles.size && matrixCache.has(cacheKey)) {
     return matrixCache.get(cacheKey)!;
   }
@@ -71,6 +81,7 @@ function getInfluenceMatrix(n: number, powerTiles: Set<string> = new Set()): Mat
     }
   }
   
+  // Only cache if no power tiles (to avoid incorrect cache hits)
   if (!powerTiles.size) {
     matrixCache.set(cacheKey, mat);
   }
@@ -79,32 +90,28 @@ function getInfluenceMatrix(n: number, powerTiles: Set<string> = new Set()): Mat
 }
 
 /**
- * Modular inverse for prime k using extended Euclidean algorithm
+ * FIX: Safe modular inverse that handles composite moduli
+ * Returns inverse if it exists, throws error if not coprime
  */
 function modInverse(a: number, k: number): number {
   a = ((a % k) + k) % k;
-  if (a === 0) return 0;
+  if (a === 0) throw new Error('No inverse for 0');
   
-  // For small primes, use brute force
-  if (k <= 7) {
-    for (let x = 1; x < k; x++) {
-      if ((a * x) % k === 1) {
-        return x;
-      }
-    }
+  // Extended Euclidean algorithm
+  let t = 0, newT = 1;
+  let r = k, newR = a;
+  
+  while (newR !== 0) {
+    const q = Math.floor(r / newR);
+    [t, newT] = [newT, t - q * newT];
+    [r, newR] = [newR, r - q * newR];
   }
   
-  // Extended Euclidean algorithm for larger primes
-  let [old_r, r] = [a, k];
-  let [old_s, s] = [1, 0];
-  
-  while (r !== 0) {
-    const quotient = Math.floor(old_r / r);
-    [old_r, r] = [r, old_r - quotient * r];
-    [old_s, s] = [s, old_s - quotient * s];
+  if (r !== 1) {
+    throw new Error(`No inverse exists for ${a} mod ${k} (gcd=${r})`);
   }
   
-  return ((old_s % k) + k) % k;
+  return ((t % k) + k) % k;
 }
 
 /**
@@ -121,12 +128,23 @@ function gaussianEliminationMod(A: Matrix, b: Vector, k: number): Vector | null 
   // Forward elimination
   let rank = 0;
   for (let col = 0; col < m && rank < n; col++) {
-    // Find pivot
+    // FIX: Find pivot that is coprime with k
     let pivot = -1;
     for (let row = rank; row < n; row++) {
-      if (aug[row][col] % k !== 0) {
-        pivot = row;
-        break;
+      const val = aug[row][col] % k;
+      if (val !== 0) {
+        // Check if coprime with k (gcd = 1)
+        let gcd = val;
+        let tempK = k;
+        while (tempK !== 0) {
+          const temp = gcd % tempK;
+          gcd = tempK;
+          tempK = temp;
+        }
+        if (gcd === 1) {
+          pivot = row;
+          break;
+        }
       }
     }
     
@@ -139,9 +157,14 @@ function gaussianEliminationMod(A: Matrix, b: Vector, k: number): Vector | null 
     
     // Scale pivot row
     const pivotVal = aug[rank][col];
-    const pivotInv = modInverse(pivotVal, k);
-    for (let j = 0; j <= m; j++) {
-      aug[rank][j] = (aug[rank][j] * pivotInv) % k;
+    try {
+      const pivotInv = modInverse(pivotVal, k);
+      for (let j = 0; j <= m; j++) {
+        aug[rank][j] = (aug[rank][j] * pivotInv) % k;
+      }
+    } catch {
+      // Should not happen as we checked for coprimality
+      continue;
     }
     
     // Eliminate column in other rows
@@ -234,7 +257,33 @@ export function isSolvable(
     }
   }
   
-  // Now extract only the active columns
+  /* FIX: Remove locked cell rows (commented out as locked tiles are disabled)
+  // Identify which rows (cells) should be removed
+  const activeRows: number[] = [];
+  idx = 0;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const key = `${r}-${c}`;
+      const isLocked = lockedTiles.has(key) && lockedTiles.get(key)! > 0;
+      // Only keep rows for cells that aren't locked or are already at target color
+      if (!isLocked || grid[r][c] === target) {
+        activeRows.push(idx);
+      }
+      idx++;
+    }
+  }
+  
+  // Extract only active rows and columns
+  for (const rowIdx of activeRows) {
+    const row: number[] = [];
+    for (const col of activeColumns) {
+      row.push(transposedA[rowIdx][col]);
+    }
+    activeA.push(row);
+  }
+  */
+  
+  // Current implementation (no row removal)
   for (let i = 0; i < n * n; i++) {
     const row: number[] = [];
     for (const col of activeColumns) {
@@ -246,6 +295,16 @@ export function isSolvable(
   // Try each possible target color
   for (let target = 0; target < k; target++) {
     const b = vectorize(grid, target, k);
+    
+    /* FIX: Extract only active rows from b vector (commented out)
+    const activeB: number[] = [];
+    for (const rowIdx of activeRows) {
+      activeB.push(b[rowIdx]);
+    }
+    const solution = gaussianEliminationMod(activeA, activeB, k);
+    */
+    
+    // Current implementation (use full b vector)
     const solution = gaussianEliminationMod(activeA, b, k);
     
     if (solution !== null) {

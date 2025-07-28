@@ -102,39 +102,11 @@ export function getLevelConfig(level: number): LevelConfig {
     requiredMoves = Math.floor(baseMoves + Math.log2(extraLevels + 1) * 5);
   }
   
-  // Power tiles progression
-  let powerTiles: number;
-  if (level <= 30) {
-    powerTiles = 0; // No power tiles initially
-  } else if (level <= 40) {
-    powerTiles = 1; // Introduce power tiles
-  } else if (level <= 50) {
-    powerTiles = 2; // More power tiles
-  } else if (level <= 60) {
-    powerTiles = 1; // Scale back for new grid
-  } else if (level <= 80) {
-    powerTiles = 2; // Increase again
-  } else if (level <= 100) {
-    powerTiles = 3; // Maximum for 5x5
-  } else {
-    // Scale with grid size but cap at reasonable amount
-    const maxPower = Math.floor(gridSize * gridSize * 0.15); // 15% of tiles max
-    powerTiles = Math.min(maxPower, 3 + Math.floor((level - 100) / 50));
-  }
+  // Power tiles progression - DISABLED per user request
+  const powerTiles = 0; // No power tiles at any level
   
-  // Locked tiles progression
-  let lockedTiles: number;
-  if (level <= 70) {
-    lockedTiles = 0; // No locked tiles for a while
-  } else if (level <= 85) {
-    lockedTiles = 1; // Introduce locked tiles
-  } else if (level <= 100) {
-    lockedTiles = 2; // More locked tiles
-  } else {
-    // Scale carefully - locked tiles can make puzzles very hard
-    const maxLocked = Math.floor(gridSize * gridSize * 0.1); // 10% of tiles max
-    lockedTiles = Math.min(maxLocked, 2 + Math.floor((level - 100) / 75));
-  }
+  // Locked tiles progression - DISABLED per user request
+  const lockedTiles = 0; // No locked tiles at any level
   
   // Hints enabled for tutorial levels
   const hintsEnabled = level <= 3;
@@ -173,7 +145,7 @@ export function getLevelMilestoneDescription(level: number): string | null {
     case 21:
       return "4×4";
     case 31:
-      return "Power tiles";
+      return "More moves";
     case 41:
       return "4 colors";
     case 46:
@@ -181,7 +153,7 @@ export function getLevelMilestoneDescription(level: number): string | null {
     case 51:
       return "5×5";
     case 71:
-      return "Locked tiles";
+      return "Harder puzzles";
     case 101:
       return "6×6";
     case 151:
@@ -221,8 +193,8 @@ export function calculateLevelXP(
   const efficiencyBonus = efficiency >= 1 ? Math.floor(baseXP * 0.5) : 
                           efficiency >= 0.8 ? Math.floor(baseXP * 0.25) : 0;
   
-  // Complexity bonus for harder configurations
-  const complexityBonus = (config.powerTiles * 50) + (config.lockedTiles * 75);
+  // Complexity bonus for harder configurations - DISABLED since no special tiles
+  const complexityBonus = 0;
   
   // Penalty for using hints
   const hintPenalty = hintsUsed ? 0.5 : 1;

@@ -56,7 +56,7 @@ export interface GenerationResult {
  * @returns Generated puzzle with exact move requirement
  */
 async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationResult> {
-  const { gridSize, colors, requiredMoves, powerTiles: powerCount, lockedTiles: lockedCount } = config;
+  const { gridSize, colors, requiredMoves, powerTiles: powerCount } = config;
   const maxAttempts = 50; // Prevent infinite loops
   
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -88,6 +88,8 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
     let currentGrid = solved.map(row => [...row]);
     const generationHistory: { row: number; col: number }[] = [];
     const usedPositions = new Set<string>();
+    // FIX: Track click parity to prevent duplicate reverse-clicks canceling out
+    const clickParity = new Map<string, number>(); // 0 or 1 to track if clicked odd times
     
     // Special case for level 1: Always use center tile
     if (config.level === 1 && requiredMoves === 1) {
@@ -135,10 +137,43 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
       
       // Select move from top candidates
       const topCandidates = candidates.slice(0, Math.max(3, gridSize));
-      const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+      let selected = null;
+      
+      // FIX: Find a candidate that hasn't been clicked an odd number of times
+      for (const candidate of topCandidates) {
+        const key = `${candidate.row}-${candidate.col}`;
+        const parity = clickParity.get(key) ?? 0;
+        if (parity === 0) { // Not clicked yet or clicked even times
+          selected = candidate;
+          break;
+        }
+      }
+      
+      // If all top candidates have odd parity, try the full candidate list
+      if (!selected) {
+        for (const candidate of candidates) {
+          const key = `${candidate.row}-${candidate.col}`;
+          const parity = clickParity.get(key) ?? 0;
+          if (parity === 0) {
+            selected = candidate;
+            break;
+          }
+        }
+      }
+      
+      // If still no valid candidate (shouldn't happen), restart the attempt
+      if (!selected) {
+        log('warn', 'No valid candidate found, restarting attempt');
+        break; // Will trigger a new attempt
+      }
       
       bestMove = selected;
-      usedPositions.add(`${selected.row}-${selected.col}`);
+      const selectedKey = `${selected.row}-${selected.col}`;
+      usedPositions.add(selectedKey);
+      
+      // Update parity
+      const currentParity = clickParity.get(selectedKey) ?? 0;
+      clickParity.set(selectedKey, 1 - currentParity); // Toggle between 0 and 1
       
       // Apply reverse click
       const isPower = power.has(`${bestMove.row}-${bestMove.col}`);
@@ -152,6 +187,8 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
     
     // Place locked tiles (after generation to not interfere with optimal path)
     const locked = new Map<string, number>();
+    
+    /* FIX: Locked tiles generation (commented out as locked tiles are disabled)
     if (lockedCount > 0 && config.level > 70) {
       const optimalPathSet = new Set(optimalPath.map(m => `${m.row}-${m.col}`));
       const candidates = [];
@@ -159,7 +196,8 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
       for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
           const key = `${r}-${c}`;
-          if (!optimalPathSet.has(key) && !power.has(key)) {
+          // FIX: Only lock tiles that are already at target color (0)
+          if (!optimalPathSet.has(key) && !power.has(key) && currentGrid[r][c] === 0) {
             candidates.push(key);
           }
         }
@@ -171,11 +209,15 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
         [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
       }
       
+      // FIX: Ensure lock duration is appropriate for the solution length
       for (let i = 0; i < lockedCount && i < candidates.length; i++) {
-        const lockMoves = 2 + Math.floor(Math.random() * 3); // 2-4 moves to unlock
+        // Lock moves should be less than optimal path length to ensure they unlock in time
+        const maxLockMoves = Math.min(optimalPath.length - 1, 4);
+        const lockMoves = Math.min(2 + Math.floor(Math.random() * 3), maxLockMoves);
         locked.set(candidates[i], lockMoves);
       }
     }
+    */
     
     // Success - we generated a puzzle with exact move count
     log('info', '✅ Generated exact-move puzzle', {
