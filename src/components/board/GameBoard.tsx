@@ -128,7 +128,7 @@ const GameBoard: React.FC = () => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="relative flex flex-col items-center justify-center flex-1 py-2 px-2"
+      className="relative flex flex-col items-center justify-center py-2 px-2"
     >
       <div
         className="grid gap-1 bg-black/20 backdrop-blur-sm rounded-xl p-2"
@@ -136,7 +136,7 @@ const GameBoard: React.FC = () => {
           gridTemplateColumns: `repeat(${grid.length}, 1fr)`,
           gridAutoRows: '1fr',
           aspectRatio: '1 / 1',
-          maxHeight: 'min(calc(100vh - 300px), 600px)',
+          maxHeight: 'min(calc(100vh - 350px), 600px)',
           maxWidth: 'min(calc(100vw - 2rem), 600px)',
           width: '100%',
           margin: '0 auto'

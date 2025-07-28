@@ -10,14 +10,17 @@ const ColorCycleInfo: React.FC = () => {
   const { level, started } = state;
   
   // Get the color count from level configuration
-  const { colors: colorCount } = started ? getLevelConfig(level) : { colors: 3 };
+  // Only show when game has started
+  if (!started) return null;
+  
+  const { colors: colorCount } = getLevelConfig(level);
   const colors = COLOR_PALETTE.slice(0, colorCount);
   
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-2 p-2 bg-black/20 backdrop-blur-sm rounded-lg"
+      className="mt-4 p-3 bg-black/20 backdrop-blur-sm rounded-lg w-full max-w-md mx-auto"
     >
       <div className="flex items-center justify-center gap-1 mb-1">
         {colors.map((color, index) => (
