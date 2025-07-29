@@ -52,6 +52,9 @@ const GameBoard: React.FC = () => {
   // Track if hint toast has been shown this session
   const [hintToastShown, setHintToastShown] = useState(false);
   
+  // Track last clicked position for animation delays
+  const [lastClickedPos, setLastClickedPos] = useState<{row: number, col: number} | null>(null);
+  
   // Dynamic hint calculation with optimal path tracking
   const { nextMove: hintMove, isOnOptimalPath } = useDynamicHint(
     grid,
@@ -91,18 +94,21 @@ const GameBoard: React.FC = () => {
   // Show victory modal after delay when puzzle is solved
   useEffect(() => {
     if (won && !state.showVictory) {
+      // Add time for flip animations to complete (400ms animation + up to 100ms delay)
+      const flipAnimationTime = 500;
+      
       // Gradual decrease in delay for first 3 levels, then consistent
-      let delay: number;
+      let baseDelay: number;
       switch (level) {
-        case 1: delay = 2000; break;
-        case 2: delay = 1700; break;
-        case 3: delay = 1500; break;
-        default: delay = 1200; // Level 4 and beyond
+        case 1: baseDelay = 2000; break;
+        case 2: baseDelay = 1700; break;
+        case 3: baseDelay = 1500; break;
+        default: baseDelay = 1200; // Level 4 and beyond
       }
       
       const timer = setTimeout(() => {
         dispatch({ type: 'SHOW_MODAL', modal: 'victory' });
-      }, delay);
+      }, baseDelay + flipAnimationTime);
       
       return () => clearTimeout(timer);
     }
@@ -137,10 +143,40 @@ const GameBoard: React.FC = () => {
   const handleTileClick = (row: number, col: number) => {
     if (paused || won) return;
     
+    setLastClickedPos({ row, col });
     dispatch({ type: 'CLICK', row, col });
     
     // Decrement locked tiles
     dispatch({ type: 'LOCK_DECR' });
+    
+    // Clear the clicked position after animations complete
+    setTimeout(() => {
+      setLastClickedPos(null);
+    }, 1000);
+  };
+  
+  // Calculate animation delay based on distance from clicked tile
+  const getAnimationDelay = (tileRow: number, tileCol: number): number => {
+    if (!lastClickedPos) return 0;
+    
+    const { row: clickedRow, col: clickedCol } = lastClickedPos;
+    
+    // Check if this tile is affected by the click
+    const isPowerClick = power.has(`${clickedRow}-${clickedCol}`);
+    const isAffected = isPowerClick ? 
+      (Math.abs(tileRow - clickedRow) <= 1 && Math.abs(tileCol - clickedCol) <= 1) :
+      (tileRow === clickedRow && tileCol === clickedCol) ||
+      (tileRow === clickedRow && Math.abs(tileCol - clickedCol) === 1) ||
+      (tileCol === clickedCol && Math.abs(tileRow - clickedRow) === 1);
+    
+    if (!isAffected) return 0;
+    
+    // Center tile (clicked tile) has no delay
+    if (tileRow === clickedRow && tileCol === clickedCol) return 0;
+    
+    // Adjacent tiles have staggered delays
+    const distance = Math.abs(tileRow - clickedRow) + Math.abs(tileCol - clickedCol);
+    return distance * 50; // 50ms per distance unit
   };
 
   return (
@@ -180,7 +216,7 @@ const GameBoard: React.FC = () => {
                   type: "spring",
                   stiffness: 200,
                   scale: won && !state.showVictory ? {
-                    delay: 0.5 + (r * grid.length + c) * 0.05,
+                    delay: 1.0 + (r * grid.length + c) * 0.05,  // Delayed to start after flips
                     duration: 0.5,
                     repeat: 2,
                     repeatType: "reverse"
@@ -199,6 +235,7 @@ const GameBoard: React.FC = () => {
                   disabled={paused || won}
                   row={r}
                   col={c}
+                  animationDelay={getAnimationDelay(r, c)}
                 />
               </motion.div>
             );
@@ -238,7 +275,11 @@ const GameBoard: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 100 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 100,
+            delay: 0.5  // Wait for flip animations to complete
+          }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <motion.div

@@ -13,6 +13,7 @@ interface TileProps {
   disabled?: boolean;
   row?: number;
   col?: number;
+  animationDelay?: number;
 }
 
 const Tile: React.FC<TileProps> = ({ 
@@ -24,9 +25,12 @@ const Tile: React.FC<TileProps> = ({
   onClick,
   disabled = false,
   row = 0,
-  col = 0
+  col = 0,
+  animationDelay = 0
 }) => {
   const [isClicking, setIsClicking] = useState(false);
+  const [flipRotation, setFlipRotation] = useState(0);
+  const previousValue = React.useRef(value);
   
   const handleClick = () => {
     if (locked || disabled) return;
@@ -37,35 +41,50 @@ const Tile: React.FC<TileProps> = ({
 
   const backgroundColor = COLOR_PALETTE[value] || COLOR_PALETTE[0];
   const colorName = ['Red', 'Green', 'Blue', 'Amber', 'Purple', 'Cyan', 'Orange', 'Pink'][value] || 'Unknown';
+  
+  // Detect value changes and trigger flip (but not on initial render)
+  React.useEffect(() => {
+    if (previousValue.current !== value && previousValue.current !== undefined) {
+      // Add 180 degrees to current rotation
+      setFlipRotation(prev => prev + 180);
+    }
+    previousValue.current = value;
+  }, [value]);
 
   return (
-    <motion.button
-      className={`
-        relative w-full h-full rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-white/50
-        ${locked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'}
-        ${disabled ? 'cursor-not-allowed opacity-60' : ''}
-        shadow-lg hover:shadow-xl
-        ${isClicking ? 'scale-90' : ''}
-        ${highlight ? 'wiggle-hint' : 'transform-gpu'}
-      `}
-      onClick={handleClick}
-      disabled={locked || disabled}
-      style={{ 
-        backgroundColor,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-      }}
-      aria-label={`${colorName} tile at row ${row + 1}, column ${col + 1}${locked ? ', locked' : ''}${power ? ', power tile' : ''}`}
-      whileHover={!locked && !disabled && !highlight ? { scale: 1.05 } : {}}
-      whileTap={!locked && !disabled ? { scale: 0.95 } : {}}
-      animate={{
-        scale: highlight ? 1.05 : 1,
-        rotateY: isClicking ? 180 : 0,
-      }}
-      transition={{
-        scale: { duration: 0.2 },
-        rotateY: { duration: 0.3, ease: "easeInOut" },
-      }}
-    >
+    <div style={{ perspective: '600px', width: '100%', height: '100%' }}>
+      <motion.button
+        className={`
+          relative w-full h-full rounded-lg focus:outline-none focus:ring-4 focus:ring-white/50
+          ${locked ? 'cursor-not-allowed' : 'cursor-pointer'}
+          ${disabled ? 'cursor-not-allowed opacity-60' : ''}
+          shadow-lg hover:shadow-xl
+          ${isClicking ? 'scale-90' : ''}
+          ${highlight ? 'wiggle-hint' : ''}
+        `}
+        onClick={handleClick}
+        disabled={locked || disabled}
+        style={{ 
+          backgroundColor,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          transformStyle: 'preserve-3d',
+        }}
+        aria-label={`${colorName} tile at row ${row + 1}, column ${col + 1}${locked ? ', locked' : ''}${power ? ', power tile' : ''}`}
+        animate={{ 
+          rotateY: flipRotation,
+          scale: highlight ? 1.05 : 1
+        }}
+        whileHover={!locked && !disabled && !highlight ? { scale: 1.05 } : {}}
+        whileTap={!locked && !disabled ? { scale: 0.95 } : {}}
+        transition={{
+          rotateY: {
+            duration: 0.4,
+            delay: flipRotation > 0 ? animationDelay / 1000 : 0,
+            ease: "easeInOut"
+          },
+          scale: { duration: 0.2 }
+        }}
+      >
       {/* Glossy effect */}
       <div className="absolute inset-1 bg-gradient-to-br from-white/30 to-transparent rounded-md pointer-events-none" />
       
@@ -145,7 +164,8 @@ const Tile: React.FC<TileProps> = ({
           transition={{ duration: 0.4, ease: "easeOut" }}
         />
       )}
-    </motion.button>
+      </motion.button>
+    </div>
   );
 };
 
