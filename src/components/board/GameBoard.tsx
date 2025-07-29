@@ -94,18 +94,21 @@ const GameBoard: React.FC = () => {
   // Show victory modal after delay when puzzle is solved
   useEffect(() => {
     if (won && !state.showVictory) {
+      // Add time for flip animations to complete (400ms animation + up to 100ms delay)
+      const flipAnimationTime = 500;
+      
       // Gradual decrease in delay for first 3 levels, then consistent
-      let delay: number;
+      let baseDelay: number;
       switch (level) {
-        case 1: delay = 2000; break;
-        case 2: delay = 1700; break;
-        case 3: delay = 1500; break;
-        default: delay = 1200; // Level 4 and beyond
+        case 1: baseDelay = 2000; break;
+        case 2: baseDelay = 1700; break;
+        case 3: baseDelay = 1500; break;
+        default: baseDelay = 1200; // Level 4 and beyond
       }
       
       const timer = setTimeout(() => {
         dispatch({ type: 'SHOW_MODAL', modal: 'victory' });
-      }, delay);
+      }, baseDelay + flipAnimationTime);
       
       return () => clearTimeout(timer);
     }
@@ -213,7 +216,7 @@ const GameBoard: React.FC = () => {
                   type: "spring",
                   stiffness: 200,
                   scale: won && !state.showVictory ? {
-                    delay: 0.5 + (r * grid.length + c) * 0.05,
+                    delay: 1.0 + (r * grid.length + c) * 0.05,  // Delayed to start after flips
                     duration: 0.5,
                     repeat: 2,
                     repeatType: "reverse"
@@ -272,7 +275,11 @@ const GameBoard: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 100 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 100,
+            delay: 0.5  // Wait for flip animations to complete
+          }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <motion.div

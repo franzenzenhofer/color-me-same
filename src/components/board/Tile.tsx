@@ -29,7 +29,8 @@ const Tile: React.FC<TileProps> = ({
   animationDelay = 0
 }) => {
   const [isClicking, setIsClicking] = useState(false);
-  const [animationKey, setAnimationKey] = useState(0);
+  const [flipRotation, setFlipRotation] = useState(0);
+  const previousValue = React.useRef(value);
   
   const handleClick = () => {
     if (locked || disabled) return;
@@ -41,15 +42,18 @@ const Tile: React.FC<TileProps> = ({
   const backgroundColor = COLOR_PALETTE[value] || COLOR_PALETTE[0];
   const colorName = ['Red', 'Green', 'Blue', 'Amber', 'Purple', 'Cyan', 'Orange', 'Pink'][value] || 'Unknown';
   
-  // Update animation key when value changes to trigger flip
+  // Detect value changes and trigger flip (but not on initial render)
   React.useEffect(() => {
-    setAnimationKey(prev => prev + 1);
+    if (previousValue.current !== value && previousValue.current !== undefined) {
+      // Add 180 degrees to current rotation
+      setFlipRotation(prev => prev + 180);
+    }
+    previousValue.current = value;
   }, [value]);
 
   return (
     <div style={{ perspective: '600px', width: '100%', height: '100%' }}>
       <motion.button
-        key={animationKey}
         className={`
           relative w-full h-full rounded-lg focus:outline-none focus:ring-4 focus:ring-white/50
           ${locked ? 'cursor-not-allowed' : 'cursor-pointer'}
@@ -66,17 +70,16 @@ const Tile: React.FC<TileProps> = ({
           transformStyle: 'preserve-3d',
         }}
         aria-label={`${colorName} tile at row ${row + 1}, column ${col + 1}${locked ? ', locked' : ''}${power ? ', power tile' : ''}`}
-        initial={{ rotateY: 0 }}
         animate={{ 
-          rotateY: [0, 180, 360],
+          rotateY: flipRotation,
           scale: highlight ? 1.05 : 1
         }}
         whileHover={!locked && !disabled && !highlight ? { scale: 1.05 } : {}}
         whileTap={!locked && !disabled ? { scale: 0.95 } : {}}
         transition={{
           rotateY: {
-            duration: 0.6,
-            delay: animationDelay / 1000,
+            duration: 0.4,
+            delay: flipRotation > 0 ? animationDelay / 1000 : 0,
             ease: "easeInOut"
           },
           scale: { duration: 0.2 }
