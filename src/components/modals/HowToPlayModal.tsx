@@ -335,10 +335,6 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
                   <span className="text-green-600">✅</span>
-                  <span className="text-sm">For 2 colors: Target the minority color</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-green-600">✅</span>
                   <span className="text-sm">Start with high-impact moves (center/edges)</span>
                 </div>
                 <div className="flex items-start gap-2">
