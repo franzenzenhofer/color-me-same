@@ -47,7 +47,7 @@ import { useMilestones } from '../../hooks/useMilestones';
 const GameBoard: React.FC = () => {
   const { state, dispatch } = useGame();
   const { grid, power, locked, started, won, paused, level, showHints, optimalPath, playerMoves } = state;
-  const { showToast } = useToast();
+  const { showToast, hideToast } = useToast();
   
   // Track if hint toast has been shown this session
   const [hintToastShown, setHintToastShown] = useState(false);
@@ -125,6 +125,13 @@ const GameBoard: React.FC = () => {
       setHintToastShown(false);
     }
   }, [started, playerMoves.length]);
+  
+  // Hide any active toasts when victory celebration starts
+  useEffect(() => {
+    if (won && !state.showVictory) {
+      hideToast();
+    }
+  }, [won, state.showVictory, hideToast]);
 
 
   if (!started || !grid.length) return null;

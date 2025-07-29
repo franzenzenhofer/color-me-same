@@ -135,14 +135,6 @@ export function getLevelConfig(level: number): LevelConfig {
  */
 export function getLevelMilestoneDescription(level: number): string | null {
   switch (level) {
-    case 1:
-      return "Tap center";
-    case 2:
-      return "2 taps";
-    case 3:
-      return "3 taps";
-    case 4:
-      return "No hints";
     case 10:
       return "3 colors unlocked!";
     case 19:

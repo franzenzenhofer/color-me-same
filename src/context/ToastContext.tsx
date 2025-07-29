@@ -3,6 +3,7 @@ import Toast, { ToastType } from '../components/ui/Toast';
 
 interface ToastContextType {
   showToast: (message: string, type?: ToastType, duration?: number) => void;
+  hideToast: () => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -29,7 +30,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, hideToast }}>
       {children}
       <Toast
         message={toast.message}
