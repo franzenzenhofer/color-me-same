@@ -152,10 +152,10 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                 
                 {/* Zero points message for hints */}
                 {hintsEnabled && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
-                    <div className="flex items-center gap-2 text-yellow-800">
-                      <Shield size={16} />
-                      <span className="text-sm">Hints: 0 pts</span>
+                  <div className="bg-yellow-50/50 border border-yellow-200/50 rounded p-1.5">
+                    <div className="flex items-center justify-center gap-2 text-yellow-700">
+                      <Shield size={14} />
+                      <span className="text-xs">Hints: 0 pts</span>
                     </div>
                   </div>
                 )}
