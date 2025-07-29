@@ -46,7 +46,7 @@ const Tile: React.FC<TileProps> = ({
         ${disabled ? 'cursor-not-allowed opacity-60' : ''}
         shadow-lg hover:shadow-xl
         ${isClicking ? 'scale-90' : ''}
-        ${highlight ? '' : 'transform-gpu'}
+        ${highlight ? 'wiggle-hint' : 'transform-gpu'}
       `}
       onClick={handleClick}
       disabled={locked || disabled}
@@ -60,17 +60,10 @@ const Tile: React.FC<TileProps> = ({
       animate={{
         scale: highlight ? 1.05 : 1,
         rotateY: isClicking ? 180 : 0,
-        rotateZ: highlight ? [0, -5, 5, -5, 5, 0] : 0,
       }}
       transition={{
         scale: { duration: 0.2 },
         rotateY: { duration: 0.3, ease: "easeInOut" },
-        rotateZ: { 
-          duration: 0.6, 
-          ease: "easeInOut",
-          repeat: highlight ? Infinity : 0,
-          repeatDelay: 2
-        }
       }}
     >
       {/* Glossy effect */}
