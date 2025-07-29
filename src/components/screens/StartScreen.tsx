@@ -188,7 +188,10 @@ const StartScreen: React.FC = () => {
         className="mb-6 flex justify-center"
       >
         <button
-          onClick={() => setShowHowToPlay(true)}
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setShowHowToPlay(true);
+          }}
           className="btn-secondary text-sm px-6 py-2 flex items-center justify-center gap-2
                      hover:scale-105 active:scale-95 transition-transform"
         >

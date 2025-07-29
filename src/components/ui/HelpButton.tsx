@@ -8,7 +8,10 @@ const HelpButton: React.FC = () => {
   return (
     <>
       <button
-        onClick={() => setShowHelp(true)}
+        onClick={() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setShowHelp(true);
+        }}
         className="fixed bottom-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 
                    backdrop-blur-sm rounded-full flex items-center justify-center
                    text-white/60 hover:text-white/80 transition-all duration-200
