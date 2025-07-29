@@ -224,7 +224,11 @@ const GameBoard: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 100 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 100,
+            delay: 0.8 // Delay overlay so users can see the solved grid
+          }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <motion.div
