@@ -84,24 +84,23 @@ export function getLevelConfig(level: number): LevelConfig {
     else colors = 5;
   }
   
-  // Required moves calculation
+  // Required moves calculation - always stay within mathematical limits
   let requiredMoves: number;
-  if (level <= 27) {
-    // Levels 1-27: exactly as many moves as the level number
-    requiredMoves = level;
-  } else if (level <= 64) {
-    // Continue for 4x4 grid
-    requiredMoves = level;
-  } else if (level <= 100) {
-    // Continue for 5x5 grid
+  
+  // Calculate max possible moves for this configuration
+  const maxPossibleMoves = gridSize * gridSize * (colors - 1);
+  
+  if (level <= maxPossibleMoves) {
+    // If level number is within limits, use it directly
     requiredMoves = level;
   } else {
-    // Continue growing but with diminishing increases
-    const baseLevel = 50;
-    const baseMoves = 50;
-    const extraLevels = level - baseLevel;
-    // Logarithmic growth to prevent ridiculous move counts
-    requiredMoves = Math.floor(baseMoves + Math.log2(extraLevels + 1) * 5);
+    // Otherwise, scale within the possible range
+    // Use a formula that grows but stays under the limit
+    const progress = (level - 1) / 100; // 0 to 1 for levels 1-100
+    requiredMoves = Math.min(
+      Math.floor(maxPossibleMoves * 0.5 + progress * maxPossibleMoves * 0.5),
+      maxPossibleMoves
+    );
   }
   
   // Power tiles progression - DISABLED per user request

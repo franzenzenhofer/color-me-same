@@ -26,6 +26,7 @@ import { motion } from 'framer-motion';
 import { getLevelConfig } from '../../utils/levelConfig';
 import { useToast } from '../../context/ToastContext';
 import { useTutorialToasts } from '../../hooks/useTutorialToasts';
+import { useMilestoneToasts } from '../../hooks/useMilestoneToasts';
 import { useConstraintTutorials } from '../../hooks/useConstraintTutorials';
 import { useSolvabilityGuarantee } from '../../hooks/useSolvabilityGuarantee';
 import { useMilestones } from '../../hooks/useMilestones';
@@ -74,6 +75,9 @@ const GameBoard: React.FC = () => {
   
   // Tutorial toast messages
   useTutorialToasts();
+  
+  // Milestone toast messages (color changes)
+  useMilestoneToasts();
   
   // Constraint tutorial messages
   useConstraintTutorials();
