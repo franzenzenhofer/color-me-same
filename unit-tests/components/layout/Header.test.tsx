@@ -39,12 +39,14 @@ describe('Header', () => {
 
   it('renders home icon', () => {
     render(<Header />);
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
   it('does not reload when game has not started', () => {
     render(<Header />);
-    const homeButton = screen.getByRole('button');
+    const buttons = screen.getAllByRole('button');
+    const homeButton = buttons[0]; // First button is the home button
     fireEvent.click(homeButton);
     expect(mockReload).not.toHaveBeenCalled();
   });
@@ -52,7 +54,8 @@ describe('Header', () => {
   it('reloads page when game has started', () => {
     mockState.started = true;
     render(<Header />);
-    const homeButton = screen.getByRole('button');
+    const buttons = screen.getAllByRole('button');
+    const homeButton = buttons[0]; // First button is the home button
     fireEvent.click(homeButton);
     expect(mockReload).toHaveBeenCalled();
   });
@@ -65,7 +68,8 @@ describe('Header', () => {
 
   it('button has hover effects', () => {
     render(<Header />);
-    const button = screen.getByRole('button');
-    expect(button).toHaveClass('group');
+    const buttons = screen.getAllByRole('button');
+    const homeButton = buttons[0]; // First button is the home button
+    expect(homeButton).toHaveClass('group');
   });
 });

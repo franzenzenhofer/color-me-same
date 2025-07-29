@@ -27,7 +27,8 @@ describe('TutorialModal Component', () => {
     });
 
     renderWithContext(<TutorialModal />);
-    expect(screen.queryByText(/how to play/i)).not.toBeInTheDocument();
+    // Check for specific tutorial modal text instead of "how to play"
+    expect(screen.queryByText(/goal/i)).not.toBeInTheDocument();
   });
 
   it('should render tutorial content when visible', () => {

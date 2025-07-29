@@ -84,8 +84,8 @@ describe('Tile Component', () => {
     const { container } = render(<Tile {...defaultProps} />);
     const button = container.querySelector('button');
     
-    expect(button?.className).toContain('hover:scale-105');
-    expect(button?.className).toContain('active:scale-95');
+    expect(button?.className).toContain('hover:shadow-xl');
+    expect(button?.className).toContain('shadow-lg');
   });
 
   it('should not have hover states when locked', () => {

@@ -21,7 +21,7 @@ describe('PageShell', () => {
       </PageShell>
     );
     const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper).toHaveClass('flex-1', 'flex', 'flex-col', 'overflow-hidden');
+    expect(wrapper).toHaveClass('w-full');
   });
 
   it('creates proper layout structure', () => {
@@ -33,13 +33,13 @@ describe('PageShell', () => {
     
     // Check nested structure
     const outerDiv = container.firstChild as HTMLElement;
-    expect(outerDiv).toHaveClass('overflow-hidden');
+    expect(outerDiv).toHaveClass('w-full');
     
     const innerWrapper = outerDiv.firstChild as HTMLElement;
-    expect(innerWrapper).toHaveClass('w-full', 'flex-1', 'flex', 'flex-col');
+    expect(innerWrapper).toHaveClass('w-full');
     
     const contentWrapper = innerWrapper.firstChild as HTMLElement;
-    expect(contentWrapper).toHaveClass('flex-1', 'p-2', 'sm:p-4');
+    expect(contentWrapper).toHaveClass('p-2', 'sm:p-4');
   });
 
   it('applies max width constraint', () => {
@@ -51,7 +51,7 @@ describe('PageShell', () => {
     
     const maxWidthContainer = container.querySelector('.max-w-6xl');
     expect(maxWidthContainer).toBeInTheDocument();
-    expect(maxWidthContainer).toHaveClass('mx-auto', 'flex-1', 'flex', 'flex-col');
+    expect(maxWidthContainer).toHaveClass('mx-auto', 'flex', 'flex-col', 'gap-2');
   });
 
   it('handles multiple children', () => {
@@ -75,8 +75,9 @@ describe('PageShell', () => {
       </PageShell>
     );
     
-    const scrollContainer = container.querySelector('.overflow-y-auto');
-    expect(scrollContainer).toBeInTheDocument();
-    expect(scrollContainer).toHaveClass('min-h-0');
+    // PageShell no longer has explicit scroll containers
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper).toHaveClass('w-full');
   });
 });

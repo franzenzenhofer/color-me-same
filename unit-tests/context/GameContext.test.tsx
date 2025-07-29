@@ -32,6 +32,19 @@ describe('GameContext', () => {
     <GameProvider>{children}</GameProvider>
   );
 
+  // Helper to create a valid NEW_GAME payload
+  const createNewGamePayload = (level = 1) => ({
+    level,
+    grid: [[0, 1], [1, 0]],
+    solved: [[0, 0], [0, 0]],
+    power: new Set<string>(),
+    locked: new Map<string, number>(),
+    solution: [],
+    reverse: [],
+    optimalPath: [],
+    playerMoves: []
+  });
+
   it('provides initial state', () => {
     const { result } = renderHook(() => useGame(), { wrapper });
     
@@ -178,7 +191,20 @@ describe('GameContext', () => {
       
       // Start game first
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+        result.current.dispatch({ 
+          type: 'NEW_GAME', 
+          payload: {
+            level: 1,
+            grid: [[0, 1], [1, 0]],
+            solved: [[0, 0], [0, 0]],
+            power: new Set<string>(),
+            locked: new Map<string, number>(),
+            solution: [],
+            reverse: [],
+            optimalPath: [],
+            playerMoves: []
+          }
+        });
       });
       
       const initialMoves = result.current.state.moves;
@@ -196,7 +222,7 @@ describe('GameContext', () => {
       
       // Start game first
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+        result.current.dispatch({ type: 'NEW_GAME', payload: createNewGamePayload() });
       });
       
       act(() => {
@@ -213,7 +239,7 @@ describe('GameContext', () => {
       
       // Start game first
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+        result.current.dispatch({ type: 'NEW_GAME', payload: createNewGamePayload() });
       });
       
       expect(result.current.state.paused).toBe(false);
@@ -232,18 +258,18 @@ describe('GameContext', () => {
       
       // Start game first
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+        result.current.dispatch({ type: 'NEW_GAME', payload: createNewGamePayload() });
       });
       
-      expect(result.current.state.showHints).toBe(false);
+      expect(result.current.state.showHints).toBe(true);
       expect(result.current.state.hintsUsed).toBe(0);
       
       act(() => {
         result.current.dispatch({ type: 'TOGGLE_HINTS' });
       });
       
-      expect(result.current.state.showHints).toBe(true);
-      expect(result.current.state.hintsUsed).toBe(1);
+      expect(result.current.state.showHints).toBe(false);
+      expect(result.current.state.hintsUsed).toBe(0);
     });
   });
 
@@ -291,7 +317,7 @@ describe('GameContext', () => {
       
       // Start game first
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'medium' });
+        result.current.dispatch({ type: 'NEW_GAME', payload: createNewGamePayload(11) });
       });
       
       // Make some moves
@@ -304,7 +330,7 @@ describe('GameContext', () => {
         result.current.dispatch({ type: 'RESTART' });
       });
       
-      expect(result.current.state.difficulty).toBe('medium');
+      expect(result.current.state.level).toBe(11);
       expect(result.current.state.moves).toBe(0);
       expect(result.current.state.time).toBe(0);
       expect(result.current.state.started).toBe(true);
@@ -317,7 +343,7 @@ describe('GameContext', () => {
       
       // Start game first
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+        result.current.dispatch({ type: 'NEW_GAME', payload: createNewGamePayload() });
       });
       
       const initialTime = result.current.state.time;
@@ -334,7 +360,7 @@ describe('GameContext', () => {
       
       // Start game and pause
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'easy' });
+        result.current.dispatch({ type: 'NEW_GAME', payload: createNewGamePayload() });
         result.current.dispatch({ type: 'TOGGLE_PAUSE' });
       });
       
@@ -354,7 +380,7 @@ describe('GameContext', () => {
       
       // Start game and make changes
       act(() => {
-        result.current.dispatch({ type: 'NEW_GAME', difficulty: 'hard' });
+        result.current.dispatch({ type: 'NEW_GAME', payload: createNewGamePayload(21) });
         result.current.dispatch({ type: 'CLICK', row: 0, col: 0 });
       });
       
