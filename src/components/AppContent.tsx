@@ -13,7 +13,6 @@ import { VersionInfo } from './VersionInfo';
 import Header from './layout/Header';
 import SaveGameLoader from './SaveGameLoader';
 import WinDetector from './WinDetector';
-import HelpButton from './ui/HelpButton';
 
 const AppContent: React.FC = () => {
   const { state } = useGame();
@@ -52,8 +51,6 @@ const AppContent: React.FC = () => {
           />
           <VersionInfo />
         </PageShell>
-        {/* Only show help button during active game */}
-        {state.started && !state.won && <HelpButton />}
       </div>
     </SaveGameLoader>
   );

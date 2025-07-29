@@ -187,7 +187,7 @@ const GameBoard: React.FC = () => {
       className="w-full flex flex-col items-center py-2"
     >
       <div
-        className="grid bg-black/20 backdrop-blur-sm rounded-xl p-3"
+        className="grid bg-black/20 backdrop-blur-sm rounded-xl p-3 relative"
         style={{ 
           gridTemplateColumns: `repeat(${grid.length}, minmax(0, 1fr))`,
           gap: '4px',
@@ -241,6 +241,35 @@ const GameBoard: React.FC = () => {
             );
           })
         )}
+        
+        {/* Victory celebration overlay - inside grid container */}
+        {won && !state.showVictory && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 100,
+              delay: 0.5  // Wait for flip animations to complete
+            }}
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          >
+            <motion.div
+              animate={{ 
+                rotate: [0, 360],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{ 
+                duration: 2,
+                rotate: { ease: "linear", repeat: 1 },
+                scale: { repeat: 2, repeatType: "reverse" }
+              }}
+              className="text-6xl"
+            >
+              🎉
+            </motion.div>
+          </motion.div>
+        )}
       </div>
       
       {/* Unsolvable warning with recovery options */}
@@ -267,35 +296,6 @@ const GameBoard: React.FC = () => {
               </button>
             ))}
           </div>
-        </motion.div>
-      )}
-      
-      {/* Victory celebration overlay */}
-      {won && !state.showVictory && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 100,
-            delay: 0.5  // Wait for flip animations to complete
-          }}
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-        >
-          <motion.div
-            animate={{ 
-              rotate: [0, 360],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{ 
-              duration: 2,
-              rotate: { ease: "linear", repeat: 1 },
-              scale: { repeat: 2, repeatType: "reverse" }
-            }}
-            className="text-6xl"
-          >
-            🎉
-          </motion.div>
         </motion.div>
       )}
     </motion.div>
