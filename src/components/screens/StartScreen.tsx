@@ -253,15 +253,10 @@ const StartScreen: React.FC = () => {
         transition={{ delay: 0.6 }}
         className="mt-auto mb-2"
       >
-        <a
-          href="https://www.franzai.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-white/40 hover:text-white/60 text-xs transition-colors"
-        >
-          Created by <span className="underline">Franz Enzenhofer</span> using Mistral AI, ChatGPT 3pro and Claude Code.<br />
-          Code Directed by <span className="underline">Franz Enzenhofer</span> with contributions by Mistral AI, ChatGPT 3pr and Claude Code.
-        </a>
+        <div className="text-white/40 hover:text-white/60 text-xs transition-colors text-center">
+          Created by <a href="https://www.franzai.com" target="_blank" rel="noopener noreferrer" className="underline">Franz Enzenhofer</a> using Mistral AI, ChatGPT 3pro and Claude Code.<br />
+          Code Directed by <a href="https://www.franzai.com" target="_blank" rel="noopener noreferrer" className="underline">Franz Enzenhofer</a> with contributions by Mistral AI, ChatGPT 3pr and Claude Code.
+        </div>
       </motion.div>
       
       {/* New game confirmation */}
