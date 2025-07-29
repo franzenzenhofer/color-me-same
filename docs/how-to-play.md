@@ -15,8 +15,9 @@ Make all tiles the same color!
 Click affects 5 tiles in a cross pattern
 
 ## Color Cycle
-🟥 → 🟩 → 🟦 → 🟥  
-Colors cycle in order
+🟥 → 🟩 → 🟥  
+For levels 1-9: Only red & green (2 colors)  
+More colors unlock in later levels
 
 ## Examples
 
@@ -58,35 +59,35 @@ Picture the winning board. Count what needs to change
 
 ## Common Patterns & Min-Moves
 
-### Checkerboard (hardest) = 5 clicks
-🟥🟩🟥    👆⬜👆    🟩🟩🟩  
-🟩🟥🟩 → ⬜👆⬜ → 🟩🟩🟩  
-🟥🟩🟥    👆⬜👆    🟩🟩🟩  
-**4 corners + center**
+### Checkerboard (hardest) = 4 clicks
+🟥🟩🟥    ⬜👆⬜    🟥🟥🟥  
+🟩🟥🟩 → 👆⬜👆 → 🟥🟥🟥  
+🟥🟩🟥    ⬜👆⬜    🟥🟥🟥  
+**Click: top-mid, left-mid, right-mid, bottom-mid**
 
-### Lines (row/column) = 1-3 clicks
-🟩🟩🟩    ⬜⬜⬜  
-🟥🟥🟥 → ⬜👆⬜  
-🟩🟩🟩    ⬜⬜⬜  
-**Click center of each bad line**
+### Horizontal Stripes = 2 clicks
+🟩🟩🟩    ⬜👆⬜    🟥🟥🟥  
+🟥🟥🟥 → ⬜⬜⬜ → 🟥🟥🟥  
+🟩🟩🟩    ⬜👆⬜    🟥🟥🟥  
+**Click top-mid, then bottom-mid**
 
-### L-Shape = 2 clicks
-🟩🟥🟥    ⬜⬜⬜  
-🟩🟥🟥 → ⬜👆⬜  
-🟩🟩🟥    ⬜⬜👆  
-**Click elbow, then opposite arm**
+### L-Shape = 1 click!
+🟩🟩🟥    👆⬜⬜    🟥🟥🟥  
+🟩🟥🟥 → ⬜⬜⬜ → 🟥🟥🟥  
+🟥🟥🟥    ⬜⬜⬜    🟥🟥🟥  
+**Click top-left corner → all red!**
 
-### Single Off-Color = 1 click
-🟥🟥🟥    ⬜⬜⬜  
-🟥🟩🟥 → ⬜👆⬜  
-🟥🟥🟥    ⬜⬜⬜  
-**Click it once. Done.**
+### Cross Pattern = 1 click
+🟥🟩🟥    ⬜⬜⬜    🟥🟥🟥  
+🟩🟩🟩 → ⬜👆⬜ → 🟥🟥🟥  
+🟥🟩🟥    ⬜⬜⬜    🟥🟥🟥  
+**Click center → all red!**
 
-### Full Row/Col Mis-colored = ⌈len/2⌉ clicks
-🟥🟥🟥    👆⬜👆  
-🟩🟩🟩 → ⬜⬜⬜  
-🟩🟩🟩    ⬜⬜⬜  
-**Click every second tile along row/column**
+### Single Center Dot = 5 clicks
+🟥🟥🟥    ⬜👆⬜    🟥🟥🟥  
+🟥🟩🟥 → 👆👆👆 → 🟥🟥🟥  
+🟥🟥🟥    ⬜👆⬜    🟥🟥🟥  
+**Click all 5 tiles in the cross pattern!**
 
 ## Advanced Techniques
 

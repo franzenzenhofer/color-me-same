@@ -89,9 +89,10 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
               <h3 className="text-lg font-semibold mb-3">Color Cycle</h3>
               <div className="bg-green-50 p-4 rounded-lg text-center">
                 <div className="text-3xl mb-2">
-                  🟥 → 🟩 → 🟦 → 🟥
+                  🟥 → 🟩 → 🟥
                 </div>
-                <p className="text-sm">Colors cycle in order</p>
+                <p className="text-sm">For levels 1-9: Only red & green (2 colors)</p>
+                <p className="text-xs text-gray-600 mt-1">More colors unlock in later levels</p>
               </div>
             </section>
 
@@ -204,7 +205,7 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
               <div className="space-y-4">
                 {/* Checkerboard */}
                 <div className="border rounded-lg p-3 bg-red-50">
-                  <p className="font-medium text-sm mb-2 text-center">Checkerboard (hardest) = 5 clicks</p>
+                  <p className="font-medium text-sm mb-2 text-center">Checkerboard (hardest) = 4 clicks</p>
                   <div className="flex items-center justify-center gap-2 text-xs">
                     <div className="grid grid-cols-3 gap-0.5">
                       <span>🟥</span><span>🟩</span><span>🟥</span>
@@ -213,23 +214,23 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
                     </div>
                     <span>→</span>
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>👆</span><span>⬜</span><span>👆</span>
                       <span>⬜</span><span>👆</span><span>⬜</span>
                       <span>👆</span><span>⬜</span><span>👆</span>
+                      <span>⬜</span><span>👆</span><span>⬜</span>
                     </div>
                     <span>→</span>
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>🟩</span><span>🟩</span><span>🟩</span>
-                      <span>🟩</span><span>🟩</span><span>🟩</span>
-                      <span>🟩</span><span>🟩</span><span>🟩</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">4 corners + center</p>
+                  <p className="text-xs text-gray-600 mt-1">Click: top-mid, left-mid, right-mid, bottom-mid</p>
                 </div>
                 
-                {/* Lines */}
+                {/* Two Move Win */}
                 <div className="border rounded-lg p-3">
-                  <p className="font-medium text-sm mb-2 text-center">Lines (row/column) = 1-3 clicks</p>
+                  <p className="font-medium text-sm mb-2 text-center">Two Move Win!</p>
                   <div className="flex items-center justify-center gap-3 text-xs">
                     <div className="grid grid-cols-3 gap-0.5">
                       <span>🟩</span><span>🟩</span><span>🟩</span>
@@ -238,31 +239,31 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
                     </div>
                     <span>→</span>
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>⬜</span><span>⬜</span><span>⬜</span>
                       <span>⬜</span><span>👆</span><span>⬜</span>
                       <span>⬜</span><span>⬜</span><span>⬜</span>
+                      <span>⬜</span><span>👆</span><span>⬜</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1 text-center">Click center of each bad line</p>
+                  <p className="text-xs text-gray-600 mt-1 text-center">Click top-mid, then bottom-mid</p>
                 </div>
                 
-                {/* L-Shape */}
+                {/* L-Shape Win */}
                 <div className="border rounded-lg p-3">
-                  <p className="font-medium text-sm mb-2 text-center">L-Shape = 2 clicks</p>
+                  <p className="font-medium text-sm mb-2 text-center">L-Shape = 1 click!</p>
                   <div className="flex items-center justify-center gap-3 text-xs">
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>🟩</span><span>🟥</span><span>🟥</span>
-                      <span>🟩</span><span>🟥</span><span>🟥</span>
                       <span>🟩</span><span>🟩</span><span>🟥</span>
+                      <span>🟩</span><span>🟥</span><span>🟥</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
                     </div>
                     <span>→</span>
                     <div className="grid grid-cols-3 gap-0.5">
+                      <span>👆</span><span>⬜</span><span>⬜</span>
                       <span>⬜</span><span>⬜</span><span>⬜</span>
-                      <span>⬜</span><span>👆</span><span>⬜</span>
-                      <span>⬜</span><span>⬜</span><span>👆</span>
+                      <span>⬜</span><span>⬜</span><span>⬜</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1 text-center">Click elbow, then opposite arm</p>
+                  <p className="text-xs text-gray-600 mt-1 text-center">Click top-left corner → all red!</p>
                 </div>
                 
                 {/* One Click Win */}
@@ -270,37 +271,37 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
                   <p className="font-medium text-sm mb-2 text-center">One Click Win!</p>
                   <div className="flex items-center justify-center gap-3 text-xs">
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>🟦</span><span>🟩</span><span>🟦</span>
+                      <span>🟥</span><span>🟩</span><span>🟥</span>
                       <span>🟩</span><span>🟩</span><span>🟩</span>
-                      <span>🟦</span><span>🟩</span><span>🟦</span>
+                      <span>🟥</span><span>🟩</span><span>🟥</span>
                     </div>
                     <span>→</span>
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>🟦</span><span>🟦</span><span>🟦</span>
-                      <span>🟦</span><span>👆</span><span>🟦</span>
-                      <span>🟦</span><span>🟦</span><span>🟦</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
+                      <span>🟥</span><span>👆</span><span>🟥</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1 text-center">Click center → all turn blue!</p>
+                  <p className="text-xs text-gray-600 mt-1 text-center">Click center → all turn red!</p>
                 </div>
                 
-                {/* Two Clicks Win */}
+                {/* Single Center Dot */}
                 <div className="border rounded-lg p-3">
-                  <p className="font-medium text-sm mb-2 text-center">Two Clicks Win!</p>
+                  <p className="font-medium text-sm mb-2 text-center">Single Center = 5 clicks!</p>
                   <div className="flex items-center justify-center gap-3 text-xs">
                     <div className="grid grid-cols-3 gap-0.5">
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
                       <span>🟥</span><span>🟩</span><span>🟥</span>
-                      <span>🟩</span><span>🟩</span><span>🟩</span>
-                      <span>🟥</span><span>🟩</span><span>🟥</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
                     </div>
                     <span>→</span>
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>⬜</span><span>⬜</span><span>⬜</span>
-                      <span>⬜</span><span>👆👆</span><span>⬜</span>
-                      <span>⬜</span><span>⬜</span><span>⬜</span>
+                      <span>⬜</span><span>👆</span><span>⬜</span>
+                      <span>👆</span><span>👆</span><span>👆</span>
+                      <span>⬜</span><span>👆</span><span>⬜</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1 text-center">Click center twice → all turn red!</p>
+                  <p className="text-xs text-gray-600 mt-1 text-center">Click all 5 tiles in the cross pattern!</p>
                 </div>
               </div>
             </section>
