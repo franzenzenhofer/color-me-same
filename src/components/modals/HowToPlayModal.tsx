@@ -265,23 +265,23 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
                   <p className="text-xs text-gray-600 mt-1 text-center">Click elbow, then opposite arm</p>
                 </div>
                 
-                {/* Single Off-Color */}
+                {/* Cross Pattern */}
                 <div className="border rounded-lg p-3">
-                  <p className="font-medium text-sm mb-2 text-center">Single Off-Color = 1 click</p>
+                  <p className="font-medium text-sm mb-2 text-center">Cross Pattern = 1 click</p>
                   <div className="flex items-center justify-center gap-3 text-xs">
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>🟥</span><span>🟥</span><span>🟥</span>
                       <span>🟥</span><span>🟩</span><span>🟥</span>
-                      <span>🟥</span><span>🟥</span><span>🟥</span>
+                      <span>🟩</span><span>🟩</span><span>🟩</span>
+                      <span>🟥</span><span>🟩</span><span>🟥</span>
                     </div>
                     <span>→</span>
                     <div className="grid grid-cols-3 gap-0.5">
-                      <span>⬜</span><span>⬜</span><span>⬜</span>
-                      <span>⬜</span><span>👆</span><span>⬜</span>
-                      <span>⬜</span><span>⬜</span><span>⬜</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
+                      <span>🟥</span><span>👆</span><span>🟥</span>
+                      <span>🟥</span><span>🟥</span><span>🟥</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1 text-center">Click it once. Done.</p>
+                  <p className="text-xs text-gray-600 mt-1 text-center">Click center to make all red</p>
                 </div>
                 
                 {/* Full Row/Col */}
