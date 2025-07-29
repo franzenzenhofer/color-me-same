@@ -91,8 +91,17 @@ const GameBoard: React.FC = () => {
   // Show victory modal after delay when puzzle is solved
   useEffect(() => {
     if (won && !state.showVictory) {
-      // Shorter delays: 1.5s for tutorials, 1.2s for other levels
-      const delay = level <= 3 ? 1500 : 1200;
+      // Gradual decrease in delay for first 6 levels
+      let delay: number;
+      switch (level) {
+        case 1: delay = 2000; break;
+        case 2: delay = 1700; break;
+        case 3: delay = 1500; break;
+        case 4: delay = 1200; break;
+        case 5: delay = 1000; break;
+        default: delay = 800; // Level 6 and beyond
+      }
+      
       const timer = setTimeout(() => {
         dispatch({ type: 'SHOW_MODAL', modal: 'victory' });
       }, delay);
