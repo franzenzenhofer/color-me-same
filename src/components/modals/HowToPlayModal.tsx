@@ -27,7 +27,7 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
           className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="p-6 pb-4 border-b flex-shrink-0">
+          <div className="p-6 pb-4 border-b flex-shrink-0 sticky top-0 bg-white z-10">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-800">How to Play</h2>
               <button
@@ -367,15 +367,16 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </section>
-          </div>
 
-          <div className="bg-white p-6 pt-4 border-t flex-shrink-0">
-            <button
-              onClick={onClose}
-              className="btn-primary w-full"
-            >
-              Got it
-            </button>
+            {/* Got it button at the end of content */}
+            <div className="pt-4 pb-4">
+              <button
+                onClick={onClose}
+                className="btn-primary w-full"
+              >
+                Got it
+              </button>
+            </div>
           </div>
         </motion.div>
       </motion.div>
