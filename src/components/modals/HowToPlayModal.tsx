@@ -150,22 +150,17 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
               
               <div className="space-y-3">
                 <div className="bg-purple-50 p-3 rounded">
-                  <h4 className="font-medium mb-1">1. Count Colors First</h4>
-                  <p className="text-sm">5 red, 4 green? Make them all green (fewer moves)</p>
-                </div>
-                
-                <div className="bg-purple-50 p-3 rounded">
-                  <h4 className="font-medium mb-1">2. Click Power</h4>
+                  <h4 className="font-medium mb-1">1. Click Power</h4>
                   <p className="text-sm">Center = 5 tiles, Edge = 4 tiles, Corner = 3 tiles</p>
                 </div>
                 
                 <div className="bg-purple-50 p-3 rounded">
-                  <h4 className="font-medium mb-1">3. Shared Tiles</h4>
+                  <h4 className="font-medium mb-1">2. Shared Tiles</h4>
                   <p className="text-sm">Adjacent clicks share 1 tile - it flips twice (cancels)</p>
                 </div>
                 
                 <div className="bg-purple-50 p-3 rounded">
-                  <h4 className="font-medium mb-1">4. Work Backwards</h4>
+                  <h4 className="font-medium mb-1">3. Work Backwards</h4>
                   <p className="text-sm">Picture the winning board. Count what needs to change</p>
                 </div>
               </div>
