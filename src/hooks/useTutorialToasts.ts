@@ -14,32 +14,37 @@ export const useTutorialToasts = () => {
   // Track which tutorial messages have been shown
   const [shownMessages, setShownMessages] = useState<Set<string>>(new Set());
   
-  const showTutorialMessage = useCallback((key: string, message: string, duration = 4000) => {
+  const showTutorialMessage = useCallback((key: string, message: string, duration = 5000) => {
     if (!shownMessages.has(key)) {
       showToast(message, 'tutorial', duration);
       setShownMessages(prev => new Set(prev).add(key));
     }
   }, [shownMessages, showToast]);
   
-  // Show ONE tutorial message only at start of tutorials
+  // Show tutorial messages at start of each tutorial level
   useEffect(() => {
-    if (level === 1 && started && playerMoves.length === 0 && !won) {
+    if (started && playerMoves.length === 0 && !won && level <= 3) {
       setTimeout(() => {
-        showTutorialMessage('tutorial-info', 'Tutorials 1-3', 2000);
-      }, 500);
+        const messages = {
+          1: 'Click = 5 tiles flip',
+          2: 'Multiple taps needed',
+          3: 'Corners unlock patterns'
+        };
+        showTutorialMessage(`tutorial-${level}`, messages[level as 1 | 2 | 3], 5000);
+      }, 800);
     }
   }, [level, started, playerMoves.length, won, showTutorialMessage]);
   
-  // Minimal success messages
+  // Tutorial completion messages
   useEffect(() => {
     if (won && level <= 3) {
       setTimeout(() => {
         const messages = {
-          1: '✓',
-          2: '✓✓', 
-          3: '✓✓✓'
+          1: '✓ Cross pattern!',
+          2: '✓✓ Think ahead!', 
+          3: '✓✓✓ Master!'
         };
-        showTutorialMessage(`level${level}-win`, messages[level as 1 | 2 | 3], 1000);
+        showTutorialMessage(`level${level}-win`, messages[level as 1 | 2 | 3], 3000);
       }, 300);
     }
   }, [won, level, showTutorialMessage]);
