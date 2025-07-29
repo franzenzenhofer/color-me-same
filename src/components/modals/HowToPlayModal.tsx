@@ -199,8 +199,8 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
               
               <div className="space-y-4">
                 {/* Checkerboard */}
-                <div className="border rounded-lg p-3 bg-red-50">
-                  <p className="font-medium text-sm mb-2 text-center">Checkerboard (hardest) = 4 clicks</p>
+                <div className="border rounded-lg p-3">
+                  <p className="font-medium text-sm mb-2 text-center">Checkerboard = 4 clicks</p>
                   <div className="flex items-center justify-center gap-2 text-xs">
                     <div className="grid grid-cols-3 gap-0.5">
                       <span>🟥</span><span>🟩</span><span>🟥</span>
@@ -220,7 +220,7 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
                       <span>🟥</span><span>🟥</span><span>🟥</span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">Click: top-mid, left-mid, right-mid, bottom-mid</p>
+                  <p className="text-xs text-gray-600 mt-1 text-center">Click: top-mid, left-mid, right-mid, bottom-mid</p>
                 </div>
                 
                 {/* Two Move Win */}
