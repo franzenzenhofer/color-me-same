@@ -3,7 +3,7 @@ import { getLevelConfig } from '../../src/utils/levelConfig';
 
 describe('Level Configuration Transitions', () => {
   it('should ensure all levels can generate required moves within grid limits', () => {
-    const testLevels = [1, 9, 10, 11, 15, 18, 19, 20, 25, 32, 33, 40, 50];
+    const testLevels = [1, 9, 10, 18, 19, 27, 28, 32, 48, 64, 65, 75, 100];
     
     for (const level of testLevels) {
       const config = getLevelConfig(level);
@@ -21,24 +21,40 @@ describe('Level Configuration Transitions', () => {
     }
   });
   
-  it('should transition from 3x3 to 4x4 at level 19', () => {
-    const level18 = getLevelConfig(18);
-    const level19 = getLevelConfig(19);
-    
-    expect(level18.gridSize).toBe(3);
-    expect(level19.gridSize).toBe(4);
-    expect(level18.requiredMoves).toBe(18); // Max for 3x3 with 3 colors
-    expect(level19.requiredMoves).toBe(19); // Continues progression
+  it('should use 2 colors for levels 1-9', () => {
+    for (let level = 1; level <= 9; level++) {
+      const config = getLevelConfig(level);
+      expect(config.colors).toBe(2);
+    }
   });
   
-  it('should transition from 4x4 to 5x5 at level 33', () => {
-    const level32 = getLevelConfig(32);
-    const level33 = getLevelConfig(33);
+  it('should transition colors at correct levels', () => {
+    expect(getLevelConfig(9).colors).toBe(2);
+    expect(getLevelConfig(10).colors).toBe(3); // 3 colors unlocked
+    expect(getLevelConfig(18).colors).toBe(3);
+    expect(getLevelConfig(19).colors).toBe(4); // 4 colors unlocked
+    expect(getLevelConfig(27).colors).toBe(4);
+    expect(getLevelConfig(28).colors).toBe(2); // Back to 2 for new grid
+  });
+  
+  it('should transition from 3x3 to 4x4 at level 28', () => {
+    const level27 = getLevelConfig(27);
+    const level28 = getLevelConfig(28);
     
-    expect(level32.gridSize).toBe(4);
-    expect(level33.gridSize).toBe(5);
-    expect(level32.requiredMoves).toBe(32); // Max for 4x4 with 3 colors
-    expect(level33.requiredMoves).toBe(33); // Continues progression
+    expect(level27.gridSize).toBe(3);
+    expect(level28.gridSize).toBe(4);
+    expect(level27.requiredMoves).toBe(27); // Max for 3x3 with 4 colors
+    expect(level28.requiredMoves).toBeLessThanOrEqual(16); // Within 4x4 with 2 colors limit
+  });
+  
+  it('should transition from 4x4 to 5x5 at level 65', () => {
+    const level64 = getLevelConfig(64);
+    const level65 = getLevelConfig(65);
+    
+    expect(level64.gridSize).toBe(4);
+    expect(level65.gridSize).toBe(5);
+    expect(level64.requiredMoves).toBeLessThanOrEqual(48); // 4x4 with 4 colors max
+    expect(level65.requiredMoves).toBeLessThanOrEqual(50); // 5x5 with 3 colors max
   });
   
   it('should never require more moves than mathematically possible', () => {
@@ -51,17 +67,20 @@ describe('Level Configuration Transitions', () => {
     }
   });
   
-  it('should have continuous move progression without drops', () => {
-    let previousMoves = 0;
-    
-    // Check levels 1-50 for continuous progression
-    for (let level = 1; level <= 50; level++) {
-      const config = getLevelConfig(level);
-      
-      // Moves should never decrease
-      expect(config.requiredMoves).toBeGreaterThanOrEqual(previousMoves);
-      
-      previousMoves = config.requiredMoves;
+  it('should have appropriate move progression', () => {
+    // Check that moves increase within each grid size
+    // Level 1-27 (3x3)
+    for (let level = 1; level < 27; level++) {
+      const current = getLevelConfig(level);
+      const next = getLevelConfig(level + 1);
+      if (current.gridSize === next.gridSize) {
+        expect(next.requiredMoves).toBeGreaterThanOrEqual(current.requiredMoves);
+      }
     }
+    
+    // Verify grid transitions may reset moves but stay within limits
+    const level27 = getLevelConfig(27);
+    const level28 = getLevelConfig(28);
+    expect(level28.requiredMoves).toBeLessThanOrEqual(16); // 4x4 with 2 colors
   });
 });
