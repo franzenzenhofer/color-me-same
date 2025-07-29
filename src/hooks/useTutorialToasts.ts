@@ -26,9 +26,9 @@ export const useTutorialToasts = () => {
     if (started && playerMoves.length === 0 && !won && level <= 3) {
       setTimeout(() => {
         const messages = {
-          1: 'Click = 5 tiles flip',
-          2: 'Multiple taps needed',
-          3: 'Corners unlock patterns'
+          1: '1 tap = 5 tiles flip',
+          2: 'Plan multiple taps',
+          3: 'Corners are key'
         };
         showTutorialMessage(`tutorial-${level}`, messages[level as 1 | 2 | 3], 5000);
       }, 800);
