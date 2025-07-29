@@ -36,7 +36,7 @@ export const useMilestoneToasts = () => {
       
       if (message) {
         setTimeout(() => {
-          showToast(message, 'milestone', 3000);
+          showToast(message, 'success', 3000);
         }, 500);
       }
     }
