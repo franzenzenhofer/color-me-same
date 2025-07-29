@@ -52,6 +52,9 @@ const GameBoard: React.FC = () => {
   // Track if hint toast has been shown this session
   const [hintToastShown, setHintToastShown] = useState(false);
   
+  // Track last clicked position for animation delays
+  const [lastClickedPos, setLastClickedPos] = useState<{row: number, col: number} | null>(null);
+  
   // Dynamic hint calculation with optimal path tracking
   const { nextMove: hintMove, isOnOptimalPath } = useDynamicHint(
     grid,
@@ -137,10 +140,40 @@ const GameBoard: React.FC = () => {
   const handleTileClick = (row: number, col: number) => {
     if (paused || won) return;
     
+    setLastClickedPos({ row, col });
     dispatch({ type: 'CLICK', row, col });
     
     // Decrement locked tiles
     dispatch({ type: 'LOCK_DECR' });
+    
+    // Clear the clicked position after animations complete
+    setTimeout(() => {
+      setLastClickedPos(null);
+    }, 1000);
+  };
+  
+  // Calculate animation delay based on distance from clicked tile
+  const getAnimationDelay = (tileRow: number, tileCol: number): number => {
+    if (!lastClickedPos) return 0;
+    
+    const { row: clickedRow, col: clickedCol } = lastClickedPos;
+    
+    // Check if this tile is affected by the click
+    const isPowerClick = power.has(`${clickedRow}-${clickedCol}`);
+    const isAffected = isPowerClick ? 
+      (Math.abs(tileRow - clickedRow) <= 1 && Math.abs(tileCol - clickedCol) <= 1) :
+      (tileRow === clickedRow && tileCol === clickedCol) ||
+      (tileRow === clickedRow && Math.abs(tileCol - clickedCol) === 1) ||
+      (tileCol === clickedCol && Math.abs(tileRow - clickedRow) === 1);
+    
+    if (!isAffected) return 0;
+    
+    // Center tile (clicked tile) has no delay
+    if (tileRow === clickedRow && tileCol === clickedCol) return 0;
+    
+    // Adjacent tiles have staggered delays
+    const distance = Math.abs(tileRow - clickedRow) + Math.abs(tileCol - clickedCol);
+    return distance * 50; // 50ms per distance unit
   };
 
   return (
@@ -199,6 +232,7 @@ const GameBoard: React.FC = () => {
                   disabled={paused || won}
                   row={r}
                   col={c}
+                  animationDelay={getAnimationDelay(r, c)}
                 />
               </motion.div>
             );
