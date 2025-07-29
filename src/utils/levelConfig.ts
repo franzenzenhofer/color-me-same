@@ -43,12 +43,12 @@ export function getLevelConfig(level: number): LevelConfig {
   
   // Grid size progression
   let gridSize: number;
-  if (level <= 18) {
-    gridSize = 3; // Tutorial and basics (max 18 moves)
-  } else if (level <= 32) {
-    gridSize = 4; // Introduction to complexity (max 32 moves)
-  } else if (level <= 50) {
-    gridSize = 5; // Advanced mechanics (max 50 moves)
+  if (level <= 27) {
+    gridSize = 3; // 3x3 grid for first 27 levels
+  } else if (level <= 64) {
+    gridSize = 4; // 4x4 grid 
+  } else if (level <= 100) {
+    gridSize = 5; // 5x5 grid
   } else if (level <= 150) {
     gridSize = 6; // Expert play
   } else if (level <= 200) {
@@ -58,22 +58,24 @@ export function getLevelConfig(level: number): LevelConfig {
     gridSize = Math.min(10, 7 + Math.floor((level - 200) / 50));
   }
   
-  // Color progression
+  // Color progression - starts with 2 colors for easier learning
   let colors: number;
-  if (level <= 20) {
-    colors = 3; // Always 3 colors in tutorial
-  } else if (level <= 40) {
-    colors = 3; // Keep 3 colors for a while
-  } else if (level <= 45) {
-    colors = 4; // Introduce 4th color
-  } else if (level <= 50) {
-    colors = 5; // Brief taste of 5 colors
-  } else if (level <= 70) {
-    colors = 3; // Back to 3 for new grid size
-  } else if (level <= 95) {
-    colors = 4; // Reintroduce 4 colors
+  if (level <= 9) {
+    colors = 2; // Binary mode - easiest to understand
+  } else if (level <= 18) {
+    colors = 3; // Introduce cycling with 3 colors
+  } else if (level <= 27) {
+    colors = 4; // 4 colors on 3x3 (still manageable)
+  } else if (level <= 32) {
+    colors = 2; // Back to 2 colors for new 4x4 grid
+  } else if (level <= 48) {
+    colors = 3; // 3 colors on 4x4
+  } else if (level <= 64) {
+    colors = 4; // 4 colors on 4x4 (if we extend)
+  } else if (level <= 75) {
+    colors = 3; // 3 colors on 5x5
   } else if (level <= 100) {
-    colors = 5; // Full 5 colors
+    colors = 4; // 4 colors on 5x5
   } else {
     // Cycle through 3-5 colors for variety
     const cycle = (level - 101) % 30;
@@ -84,13 +86,13 @@ export function getLevelConfig(level: number): LevelConfig {
   
   // Required moves calculation
   let requiredMoves: number;
-  if (level <= 18) {
-    // Tutorial: exactly as many moves as the level number
+  if (level <= 27) {
+    // Levels 1-27: exactly as many moves as the level number
     requiredMoves = level;
-  } else if (level <= 32) {
-    // Continue from 18, for 4x4 grid
+  } else if (level <= 64) {
+    // Continue for 4x4 grid
     requiredMoves = level;
-  } else if (level <= 50) {
+  } else if (level <= 100) {
     // Continue for 5x5 grid
     requiredMoves = level;
   } else {
@@ -142,16 +144,20 @@ export function getLevelMilestoneDescription(level: number): string | null {
       return "3 taps";
     case 4:
       return "No hints";
+    case 10:
+      return "3 colors unlocked!";
     case 19:
-      return "4×4";
-    case 25:
-      return "More moves";
+      return "4 colors unlocked!";
+    case 28:
+      return "4×4 grid";
     case 33:
-      return "5×5";
-    case 41:
-      return "4 colors";
-    case 46:
-      return "5 colors";
+      return "3 colors on 4×4";
+    case 49:
+      return "4 colors on 4×4";
+    case 65:
+      return "5×5 grid";
+    case 76:
+      return "4 colors on 5×5";
     case 71:
       return "Harder puzzles";
     case 101:
