@@ -418,7 +418,7 @@ function reducer(state: GameState, action: Action): GameState {
       return { 
         ...state, 
         won: true, 
-        showVictory: true,
+        showVictory: false, // Don't show victory modal immediately
         score: levelPoints, // Store level points in score field
         levelPoints,
         totalPoints,
