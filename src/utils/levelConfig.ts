@@ -43,12 +43,12 @@ export function getLevelConfig(level: number): LevelConfig {
   
   // Grid size progression
   let gridSize: number;
-  if (level <= 20) {
-    gridSize = 3; // Tutorial and basics
+  if (level <= 18) {
+    gridSize = 3; // Tutorial and basics (max 18 moves)
+  } else if (level <= 32) {
+    gridSize = 4; // Introduction to complexity (max 32 moves)
   } else if (level <= 50) {
-    gridSize = 4; // Introduction to complexity
-  } else if (level <= 100) {
-    gridSize = 5; // Advanced mechanics
+    gridSize = 5; // Advanced mechanics (max 50 moves)
   } else if (level <= 150) {
     gridSize = 6; // Expert play
   } else if (level <= 200) {
@@ -84,19 +84,19 @@ export function getLevelConfig(level: number): LevelConfig {
   
   // Required moves calculation
   let requiredMoves: number;
-  if (level <= 20) {
+  if (level <= 18) {
     // Tutorial: exactly as many moves as the level number
     requiredMoves = level;
+  } else if (level <= 32) {
+    // Continue from 18, for 4x4 grid
+    requiredMoves = level;
   } else if (level <= 50) {
-    // Gradually increase from 10 to 39
-    requiredMoves = 10 + (level - 21);
-  } else if (level <= 100) {
-    // Increase from 15 to 64
-    requiredMoves = 15 + (level - 51);
+    // Continue for 5x5 grid
+    requiredMoves = level;
   } else {
     // Continue growing but with diminishing increases
-    const baseLevel = 100;
-    const baseMoves = 64;
+    const baseLevel = 50;
+    const baseMoves = 50;
     const extraLevels = level - baseLevel;
     // Logarithmic growth to prevent ridiculous move counts
     requiredMoves = Math.floor(baseMoves + Math.log2(extraLevels + 1) * 5);
@@ -142,16 +142,16 @@ export function getLevelMilestoneDescription(level: number): string | null {
       return "3 taps";
     case 4:
       return "No hints";
-    case 21:
+    case 19:
       return "4×4";
-    case 31:
+    case 25:
       return "More moves";
+    case 33:
+      return "5×5";
     case 41:
       return "4 colors";
     case 46:
       return "5 colors";
-    case 51:
-      return "5×5";
     case 71:
       return "Harder puzzles";
     case 101:

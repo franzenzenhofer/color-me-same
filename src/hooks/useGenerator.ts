@@ -88,8 +88,8 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
     let currentGrid = solved.map(row => [...row]);
     const generationHistory: { row: number; col: number }[] = [];
     const usedPositions = new Set<string>();
-    // FIX: Track click parity to prevent duplicate reverse-clicks canceling out
-    const clickParity = new Map<string, number>(); // 0 or 1 to track if clicked odd times
+    // Track click count to prevent clicking same tile more than (colors - 1) times
+    const clickCount = new Map<string, number>(); // Track number of clicks per tile
     
     // Special case for level 1: Always use center tile
     if (config.level === 1 && requiredMoves === 1) {
@@ -142,19 +142,19 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
       // FIX: Find a candidate that hasn't been clicked an odd number of times
       for (const candidate of topCandidates) {
         const key = `${candidate.row}-${candidate.col}`;
-        const parity = clickParity.get(key) ?? 0;
-        if (parity === 0) { // Not clicked yet or clicked even times
+        const clicks = clickCount.get(key) ?? 0;
+        if (clicks < colors - 1) { // Can click up to (colors - 1) times
           selected = candidate;
           break;
         }
       }
       
-      // If all top candidates have odd parity, try the full candidate list
+      // If all top candidates are maxed out, try the full candidate list
       if (!selected) {
         for (const candidate of candidates) {
           const key = `${candidate.row}-${candidate.col}`;
-          const parity = clickParity.get(key) ?? 0;
-          if (parity === 0) {
+          const clicks = clickCount.get(key) ?? 0;
+          if (clicks < colors - 1) {
             selected = candidate;
             break;
           }
@@ -171,9 +171,9 @@ async function generateExactMovePuzzle(config: LevelConfig): Promise<GenerationR
       const selectedKey = `${selected.row}-${selected.col}`;
       usedPositions.add(selectedKey);
       
-      // Update parity
-      const currentParity = clickParity.get(selectedKey) ?? 0;
-      clickParity.set(selectedKey, 1 - currentParity); // Toggle between 0 and 1
+      // Update click count
+      const currentClicks = clickCount.get(selectedKey) ?? 0;
+      clickCount.set(selectedKey, currentClicks + 1); // Increment click count
       
       // Apply reverse click
       const isPower = power.has(`${bestMove.row}-${bestMove.col}`);
