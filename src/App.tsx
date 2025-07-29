@@ -17,22 +17,10 @@
  * @module App
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { GameProvider } from './context/GameContext';
-import PageShell from './components/layout/PageShell';
-import GameBoard from './components/board/GameBoard';
-import CompactDashboard from './components/hud/CompactDashboard';
-import PowerUps from './components/hud/PowerUps';
-import ColorCycleInfo from './components/hud/ColorCycleInfo';
-import VictoryModal from './components/modals/VictoryModal';
-import TutorialModal from './components/modals/TutorialModal';
-import AchievementModal from './components/modals/AchievementModal';
-import StartScreen from './components/screens/StartScreen';
-import { VersionInfo } from './components/VersionInfo';
-import Header from './components/layout/Header';
-import SaveGameLoader from './components/SaveGameLoader';
-import WinDetector from './components/WinDetector';
 import { ToastProvider } from './context/ToastContext';
+import AppContent from './components/AppContent';
 
 /**
  * Root Application Component
@@ -50,44 +38,10 @@ import { ToastProvider } from './context/ToastContext';
  * @returns {JSX.Element} The complete game application
  */
 const App: React.FC = () => {
-  // Local state for achievement modal (not in game state as it's UI-only)
-  const [achievementModal, setAchievementModal] = useState<{
-    isOpen: boolean;
-    achievements: string[];
-  }>({ isOpen: false, achievements: [] });
-
-  const showAchievements = (achievements: string[]) => {
-    setAchievementModal({ isOpen: true, achievements });
-  };
-
-  const closeAchievements = () => {
-    setAchievementModal({ isOpen: false, achievements: [] });
-  };
-
   return (
     <GameProvider>
       <ToastProvider>
-        <SaveGameLoader>
-          <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-            <Header />
-            <PageShell>
-              <StartScreen />
-              <CompactDashboard />
-              <PowerUps />
-              <GameBoard />
-              <ColorCycleInfo />
-              <WinDetector />
-              <TutorialModal />
-              <VictoryModal onShowAchievements={showAchievements} />
-              <AchievementModal
-                isOpen={achievementModal.isOpen}
-                achievements={achievementModal.achievements}
-                onClose={closeAchievements}
-              />
-              <VersionInfo />
-            </PageShell>
-          </div>
-        </SaveGameLoader>
+        <AppContent />
       </ToastProvider>
     </GameProvider>
   );

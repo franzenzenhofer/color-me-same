@@ -5,10 +5,11 @@ import { useSaveGame } from '../../hooks/useSaveGame';
 import { saveManager } from '../../services/SaveManager';
 import { DIFFICULTIES } from '../../constants/gameConfig';
 import { motion } from 'framer-motion';
-import { Play, RotateCcw, Trophy, TrendingUp, Target } from 'lucide-react';
+import { Play, RotateCcw, Trophy, TrendingUp, Target, HelpCircle } from 'lucide-react';
 import { formatPoints } from '../../utils/scoring';
 import { useStartScreenStats } from '../../hooks/useStartScreenStats';
 import { MilestoneProgress } from '../ui/MilestoneProgress';
+import HowToPlayModal from '../modals/HowToPlayModal';
 
 const StartScreen: React.FC = () => {
   const { state, dispatch } = useGame();
@@ -17,6 +18,7 @@ const StartScreen: React.FC = () => {
   const stats = useStartScreenStats();
   const [loading, setLoading] = useState(false);
   const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   if (state.started) return null;
   
@@ -178,6 +180,23 @@ const StartScreen: React.FC = () => {
         </motion.div>
       </div>
 
+      {/* How to Play button */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="mb-6 flex justify-center"
+      >
+        <button
+          onClick={() => setShowHowToPlay(true)}
+          className="btn-secondary text-sm px-6 py-2 flex items-center justify-center gap-2
+                     hover:scale-105 active:scale-95 transition-transform"
+        >
+          <HelpCircle size={18} />
+          <span>How to Play</span>
+        </button>
+      </motion.div>
+
       {/* Statistics or starting info */}
       {savedGameExists ? (
         <motion.div
@@ -263,6 +282,12 @@ const StartScreen: React.FC = () => {
           </motion.div>
         </motion.div>
       )}
+
+      {/* How to Play Modal */}
+      <HowToPlayModal 
+        isOpen={showHowToPlay} 
+        onClose={() => setShowHowToPlay(false)} 
+      />
     </motion.div>
   );
 };
