@@ -53,7 +53,7 @@ const AppContent: React.FC = () => {
           <VersionInfo />
         </PageShell>
         {/* Only show help button during active game */}
-        {state.started && !state.victory && <HelpButton />}
+        {state.started && !state.won && <HelpButton />}
       </div>
     </SaveGameLoader>
   );
