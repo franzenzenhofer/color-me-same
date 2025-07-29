@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useGame } from '../context/GameContext';
 import PageShell from './layout/PageShell';
 import GameBoard from './board/GameBoard';
 import CompactDashboard from './hud/CompactDashboard';
@@ -15,7 +14,6 @@ import SaveGameLoader from './SaveGameLoader';
 import WinDetector from './WinDetector';
 
 const AppContent: React.FC = () => {
-  const { state } = useGame();
   
   // Local state for achievement modal (not in game state as it's UI-only)
   const [achievementModal, setAchievementModal] = useState<{
