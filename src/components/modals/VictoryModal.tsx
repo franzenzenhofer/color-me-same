@@ -150,8 +150,8 @@ const VictoryModal: React.FC<VictoryModalProps> = ({ onShowAchievements: _onShow
                   </>
                 )}
                 
-                {/* Zero points message for hints */}
-                {hintsEnabled && (
+                {/* Zero points message for hints - not shown in tutorial levels */}
+                {hintsEnabled && level > 3 && (
                   <div className="bg-yellow-50/50 border border-yellow-200/50 rounded p-1.5">
                     <div className="flex items-center justify-center gap-2 text-yellow-700">
                       <Shield size={14} />
