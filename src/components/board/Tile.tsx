@@ -59,10 +59,17 @@ const Tile: React.FC<TileProps> = ({
       animate={{
         scale: highlight ? 1.05 : 1,
         rotateY: isClicking ? 180 : 0,
+        rotate: highlight ? [0, -5, 5, -5, 5, 0] : 0,
       }}
       transition={{
         scale: { duration: 0.2 },
-        rotateY: { duration: 0.3, ease: "easeInOut" }
+        rotateY: { duration: 0.3, ease: "easeInOut" },
+        rotate: { 
+          duration: 0.6, 
+          ease: "easeInOut",
+          repeat: highlight ? Infinity : 0,
+          repeatDelay: 2
+        }
       }}
     >
       {/* Glossy effect */}
