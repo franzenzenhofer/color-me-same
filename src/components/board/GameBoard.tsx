@@ -91,13 +91,15 @@ const GameBoard: React.FC = () => {
   // Show victory modal after delay when puzzle is solved
   useEffect(() => {
     if (won && !state.showVictory) {
+      // Longer delay for tutorial levels (1-3) to let users see what happened
+      const delay = level <= 3 ? 3500 : 2000;
       const timer = setTimeout(() => {
         dispatch({ type: 'SHOW_MODAL', modal: 'victory' });
-      }, 2000); // 2 second delay to admire the solved grid
+      }, delay);
       
       return () => clearTimeout(timer);
     }
-  }, [won, state.showVictory, dispatch]);
+  }, [won, state.showVictory, dispatch, level]);
   
   // Show hint toast on first hint activation after tutorials
   useEffect(() => {
