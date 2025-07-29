@@ -44,8 +44,9 @@ const Tile: React.FC<TileProps> = ({
         relative w-full h-full rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-white/50
         ${locked ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'}
         ${disabled ? 'cursor-not-allowed opacity-60' : ''}
-        shadow-lg hover:shadow-xl transform-gpu
+        shadow-lg hover:shadow-xl
         ${isClicking ? 'scale-90' : ''}
+        ${highlight ? '' : 'transform-gpu'}
       `}
       onClick={handleClick}
       disabled={locked || disabled}
@@ -54,17 +55,17 @@ const Tile: React.FC<TileProps> = ({
         boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
       }}
       aria-label={`${colorName} tile at row ${row + 1}, column ${col + 1}${locked ? ', locked' : ''}${power ? ', power tile' : ''}`}
-      whileHover={!locked && !disabled ? { scale: 1.05 } : {}}
+      whileHover={!locked && !disabled && !highlight ? { scale: 1.05 } : {}}
       whileTap={!locked && !disabled ? { scale: 0.95 } : {}}
       animate={{
         scale: highlight ? 1.05 : 1,
         rotateY: isClicking ? 180 : 0,
-        rotate: highlight ? [0, -5, 5, -5, 5, 0] : 0,
+        rotateZ: highlight ? [0, -5, 5, -5, 5, 0] : 0,
       }}
       transition={{
         scale: { duration: 0.2 },
         rotateY: { duration: 0.3, ease: "easeInOut" },
-        rotate: { 
+        rotateZ: { 
           duration: 0.6, 
           ease: "easeInOut",
           repeat: highlight ? Infinity : 0,
