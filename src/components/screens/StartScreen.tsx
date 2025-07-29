@@ -246,18 +246,6 @@ const StartScreen: React.FC = () => {
         <MilestoneProgress className="mb-6" />
       )}
       
-      {/* Creator credit */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="mt-auto mb-2"
-      >
-        <div className="text-white/40 hover:text-white/60 text-xs transition-colors text-center">
-          Code Directed by <a href="https://www.franzai.com" target="_blank" rel="noopener noreferrer" className="underline">Franz Enzenhofer</a> with contributions by Mistral AI, ChatGPT o3 pro and Claude Code.
-        </div>
-      </motion.div>
-      
       {/* New game confirmation */}
       {showNewGameConfirm && (
         <motion.div
