@@ -35,19 +35,6 @@ export const useTutorialToasts = () => {
     }
   }, [level, started, playerMoves.length, won, showTutorialMessage]);
   
-  // Tutorial completion messages
-  useEffect(() => {
-    if (won && level <= 3) {
-      setTimeout(() => {
-        const messages = {
-          1: '✓ Cross pattern!',
-          2: '✓✓ Think ahead!', 
-          3: '✓✓✓ Master!'
-        };
-        showTutorialMessage(`level${level}-win`, messages[level as 1 | 2 | 3], 3000);
-      }, 300);
-    }
-  }, [won, level, showTutorialMessage]);
   
   // Reset shown messages when starting a new game
   useEffect(() => {
